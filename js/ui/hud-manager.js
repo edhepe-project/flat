@@ -110,6 +110,12 @@ class HUDManager {
       dayVal.textContent = data.t.toFixed(1);
     }
 
+    // Actualizar visibilidad de constelaciones en el panel "Cielo Esta Noche"
+    if (this.app.earthDisc?.celestialSphere?.updateVisibility) {
+      const sunRaDeg = (((data.t / (this.app.celestial?.TY || 365.24219)) * 360) % 360 + 360) % 360;
+      this.app.earthDisc.celestialSphere.updateVisibility(sunRaDeg);
+    }
+
     // Telescopio PiP
     if (this.app.isMoonPipActive && this.app.controls && this.app.controls.observerPosition) {
       const pipCoords = document.getElementById('moon-pip-coords');
