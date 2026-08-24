@@ -31,6 +31,7 @@ class CelestialSphere {
     this._createSphereShell();
     this._createFibonacciStars();
     this._createMajorConstellationStars();
+    this._createConstellationLabels();
     this._createCelestialGrid();
   }
 
@@ -399,6 +400,145 @@ class CelestialSphere {
 
     this.majorStars = majorStarsGroup;
     this.group.add(this.majorStars);
+  }
+
+  /**
+   * 3b. Etiquetas minimalistas de las constelaciones más importantes.
+   * Sin líneas: solo el nombre flotando en la posición del centroide RA/Dec.
+   * Las etiquetas más opacas = constelaciones más brillantes/reconocibles.
+   */
+  _createConstellationLabels() {
+    // [nombre, ra_horas, dec_grados, importancia 0-1]
+    const CONSTELLATIONS = [
+      // Norte polar
+      ['Osa Menor',   15.0,  75.0, 1.0],
+      ['Osa Mayor',   11.0,  55.0, 1.0],
+      ['Dragón',      17.0,  65.0, 0.7],
+      ['Cefeo',        1.5,  70.0, 0.6],
+      // Hemisferio Norte
+      ['Perseo',       3.4,  42.0, 0.8],
+      ['Andrómeda',    0.8,  37.0, 0.7],
+      ['Cisne',       20.7,  43.0, 0.9],
+      ['Lyra',        18.9,  36.0, 0.8],
+      ['Hércules',    17.4,  27.0, 0.7],
+      ['Boyero',      14.7,  30.0, 0.8],
+      ['Corona Boreal',15.6, 33.0, 0.6],
+      ['Ofiuco',      17.4,  -5.0, 0.7],
+      // Zodiacales
+      ['Aries',        2.6,  20.0, 0.7],
+      ['Tauro',        4.7,  17.0, 1.0],
+      ['Géminis',      7.1,  22.0, 0.9],
+      ['Cáncer',       8.7,  19.0, 0.5],
+      ['Leo',         10.7,  13.0, 1.0],
+      ['Virgo',       13.4,  -4.0, 0.9],
+      ['Libra',       15.2, -15.0, 0.6],
+      ['Escorpio',    16.9, -30.0, 1.0],
+      ['Sagitario',   19.1, -28.0, 0.9],
+      ['Capricornio', 21.0, -18.0, 0.6],
+      ['Acuario',     22.3, -12.0, 0.6],
+      ['Piscis',       0.5,  12.0, 0.5],
+      // Hemisferio Sur y Ecuador
+      ['Orión',        5.5,  -2.0, 1.0],
+      ['Can Mayor',    6.8, -25.0, 0.9],
+      ['Hidra',       11.0, -15.0, 0.6],
+      ['Centauro',    13.1, -50.0, 0.9],
+      ['Cruz del Sur',12.45,-60.0, 1.0],
+      ['Águila',      19.7,   5.0, 0.8],
+      ['Pegaso',      22.7,  20.0, 0.7],
+      ['Erídano',      3.3, -30.0, 0.6],
+    ];
+
+    const labelsGroup = new THREE.Group();
+    const R = this.sphereRadius * 0.975;
+
+    CONSTELLATIONS.forEach(([name, ra, dec, importance]) => {
+      // Canvas minimalista: solo texto con sutil glow, sin fondo
+      const canvas = document.createElement('canvas');
+      canvas.width  = 320;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+
+      const alpha = 0.35 + importance * 0.45; // 0.35 a 0.80
+      const fontSize = 16 + importance * 6;    // 16 a 22px
+
+      // Glow suave
+      ctx.shadowColor   = 'rgba(147, 197, 253, 0.9)';
+      ctx.shadowBlur    = 10;
+      ctx.fillStyle     = `rgba(200, 225, 255, ${alpha})`;
+      ctx.font          = `300 ${fontSize}px "Outfit", sans-serif`;
+      ctx.textAlign     = 'center';
+      ctx.textBaseline  = 'middle';
+      ctx.letterSpacing = '2px';
+      ctx.fillText(name.toUpperCase(), 160, 32);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      const mat = new THREE.SpriteMaterial({
+        map: tex,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      const sprite = new THREE.Sprite(mat);
+
+      const pos = this.raDecToSphereVector(ra, dec, R);
+      sprite.position.copy(pos);
+
+      // Escala proporcional a la importancia
+      const w = 55 + importance * 25;
+      const h = w * (64 / 320);
+      sprite.scale.set(w, h, 1);
+
+      sprite.userData.constellationName = name;
+      sprite.userData.raDeg = (ra / 24) * 360;
+      labelsGroup.add(sprite);
+    });
+
+    this.constellationLabels = labelsGroup;
+    this.group.add(labelsGroup);
+  }
+
+  /**
+   * Actualiza el panel "Cielo Esta Noche" en el sidebar.
+   * Una constelación es visible de noche cuando su RA está opuesta al Sol (>60° de diferencia).
+   * @param {number} sunRaDeg - Ascensión Recta del Sol en grados [0, 360)
+   */
+  updateVisibility(sunRaDeg) {
+    const panel = document.getElementById('night-sky-list');
+    if (!panel || !this.constellationLabels) return;
+
+    // Datos clave para el panel (las más reconocibles)
+    const KEY = [
+      { name: 'Orión',        raDeg:  82.5, icon: '🔴' },
+      { name: 'Cruz del Sur', raDeg: 186.8, icon: '✦' },
+      { name: 'Escorpio',     raDeg: 253.5, icon: '🦂' },
+      { name: 'Leo',          raDeg: 160.5, icon: '♌' },
+      { name: 'Osa Mayor',    raDeg: 165.0, icon: '⭐' },
+      { name: 'Tauro',        raDeg:  70.5, icon: '♉' },
+      { name: 'Cisne',        raDeg: 310.5, icon: '🕊️' },
+      { name: 'Sagitario',    raDeg: 286.5, icon: '♐' },
+    ];
+
+    const items = KEY.map(c => {
+      let diff = Math.abs(c.raDeg - sunRaDeg);
+      if (diff > 180) diff = 360 - diff;
+      // Visible = opuesto al Sol (diff > 60°), óptimo > 90°
+      const visible   = diff >= 60;
+      const optimal   = diff >= 90;
+      return { ...c, diff, visible, optimal };
+    });
+
+    // Ordenar: primero los más visibles
+    items.sort((a, b) => b.diff - a.diff);
+
+    panel.innerHTML = items.map(c => {
+      const color = c.optimal ? '#86efac' : c.visible ? '#fde68a' : '#6b7280';
+      const badge = c.optimal ? 'Visible' : c.visible ? 'Marginal' : 'Diurna';
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+          <span style="font-size:11px;color:rgba(255,255,255,0.85);">${c.icon} ${c.name}</span>
+          <span style="font-size:10px;font-weight:600;color:${color};letter-spacing:0.5px;">${badge}</span>
+        </div>`;
+    }).join('');
   }
 
 

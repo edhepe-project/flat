@@ -271,7 +271,14 @@ class CelestialSystem {
     if (this.earthDisc && this.earthDisc.updateNightCityLights) {
       this.earthDisc.updateNightCityLights(sunX, yS, sunZ);
     }
+
+    // 6. Actualizar visibilidad de constelaciones en el panel "Cielo Esta Noche"
+    const sunRaDeg = (((this.t / this.TY) * 360) % 360 + 360) % 360;
+    if (this.earthDisc?.celestialSphere?.updateVisibility) {
+      this.earthDisc.celestialSphere.updateVisibility(sunRaDeg);
+    }
   }
+
 
   pushTrails(sx, sy, sz, mx, my, mz) {
     if (this.trails) this.trails.push(sx, sy, sz, mx, my, mz);
