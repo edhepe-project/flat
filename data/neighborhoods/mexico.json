@@ -1,0 +1,667 @@
+[
+  {
+    "n": "Polanco",
+    "c": "CDMX",
+    "m": "Miguel Hidalgo",
+    "lt": 19.4336,
+    "ln": -99.1917
+  },
+  {
+    "n": "Roma Norte",
+    "c": "CDMX",
+    "m": "Cuauhtémoc",
+    "lt": 19.4194,
+    "ln": -99.16
+  },
+  {
+    "n": "Roma Sur",
+    "c": "CDMX",
+    "m": "Cuauhtémoc",
+    "lt": 19.4072,
+    "ln": -99.1628
+  },
+  {
+    "n": "Condesa",
+    "c": "CDMX",
+    "m": "Cuauhtémoc",
+    "lt": 19.4117,
+    "ln": -99.1725
+  },
+  {
+    "n": "Hipódromo Condesa",
+    "c": "CDMX",
+    "m": "Cuauhtémoc",
+    "lt": 19.4103,
+    "ln": -99.1697
+  },
+  {
+    "n": "Juárez / Zona Rosa",
+    "c": "CDMX",
+    "m": "Cuauhtémoc",
+    "lt": 19.4264,
+    "ln": -99.1642
+  },
+  {
+    "n": "Centro Histórico",
+    "c": "CDMX",
+    "m": "Cuauhtémoc",
+    "lt": 19.4326,
+    "ln": -99.1332
+  },
+  {
+    "n": "Santa María la Ribera",
+    "c": "CDMX",
+    "m": "Cuauhtémoc",
+    "lt": 19.4497,
+    "ln": -99.1578
+  },
+  {
+    "n": "San Rafael",
+    "c": "CDMX",
+    "m": "Cuauhtémoc",
+    "lt": 19.4394,
+    "ln": -99.1608
+  },
+  {
+    "n": "Del Valle Centro",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.38,
+    "ln": -99.1664
+  },
+  {
+    "n": "Del Valle Norte",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.3933,
+    "ln": -99.1681
+  },
+  {
+    "n": "Del Valle Sur",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.3686,
+    "ln": -99.1722
+  },
+  {
+    "n": "Narvarte Poniente",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.3953,
+    "ln": -99.1558
+  },
+  {
+    "n": "Narvarte Oriente",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.3967,
+    "ln": -99.1469
+  },
+  {
+    "n": "Nápoles",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.3917,
+    "ln": -99.1764
+  },
+  {
+    "n": "San José Insurgentes",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.3672,
+    "ln": -99.1839
+  },
+  {
+    "n": "Portales Norte",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.3731,
+    "ln": -99.145
+  },
+  {
+    "n": "Portales Sur",
+    "c": "CDMX",
+    "m": "Benito Juárez",
+    "lt": 19.3619,
+    "ln": -99.1458
+  },
+  {
+    "n": "Coyoacán Centro",
+    "c": "CDMX",
+    "m": "Coyoacán",
+    "lt": 19.3497,
+    "ln": -99.1625
+  },
+  {
+    "n": "Del Carmen",
+    "c": "CDMX",
+    "m": "Coyoacán",
+    "lt": 19.3556,
+    "ln": -99.1644
+  },
+  {
+    "n": "Copilco Universidad",
+    "c": "CDMX",
+    "m": "Coyoacán",
+    "lt": 19.3361,
+    "ln": -99.1792
+  },
+  {
+    "n": "Pedregal de Santo Domingo",
+    "c": "CDMX",
+    "m": "Coyoacán",
+    "lt": 19.3283,
+    "ln": -99.1656
+  },
+  {
+    "n": "Campestre Churubusco",
+    "c": "CDMX",
+    "m": "Coyoacán",
+    "lt": 19.3467,
+    "ln": -99.1389
+  },
+  {
+    "n": "Jardines del Pedregal",
+    "c": "CDMX",
+    "m": "Álvaro Obregón",
+    "lt": 19.3242,
+    "ln": -99.2064
+  },
+  {
+    "n": "San Ángel",
+    "c": "CDMX",
+    "m": "Álvaro Obregón",
+    "lt": 19.3467,
+    "ln": -99.1906
+  },
+  {
+    "n": "San Ángel Inn",
+    "c": "CDMX",
+    "m": "Álvaro Obregón",
+    "lt": 19.3486,
+    "ln": -99.1969
+  },
+  {
+    "n": "Santa Fe",
+    "c": "CDMX / Cuajimalpa",
+    "m": "Álvaro Obregón",
+    "lt": 19.3592,
+    "ln": -99.2589
+  },
+  {
+    "n": "Lomas de Chapultepec",
+    "c": "CDMX",
+    "m": "Miguel Hidalgo",
+    "lt": 19.4242,
+    "ln": -99.2131
+  },
+  {
+    "n": "Bosques de las Lomas",
+    "c": "CDMX",
+    "m": "Miguel Hidalgo",
+    "lt": 19.3956,
+    "ln": -99.2503
+  },
+  {
+    "n": "Anzures",
+    "c": "CDMX",
+    "m": "Miguel Hidalgo",
+    "lt": 19.4319,
+    "ln": -99.1764
+  },
+  {
+    "n": "Escandón",
+    "c": "CDMX",
+    "m": "Miguel Hidalgo",
+    "lt": 19.4006,
+    "ln": -99.175
+  },
+  {
+    "n": "Tacubaya",
+    "c": "CDMX",
+    "m": "Miguel Hidalgo",
+    "lt": 19.4017,
+    "ln": -99.1878
+  },
+  {
+    "n": "Lindavista",
+    "c": "CDMX",
+    "m": "Gustavo A. Madero",
+    "lt": 19.4883,
+    "ln": -99.1281
+  },
+  {
+    "n": "Villa de Guadalupe",
+    "c": "CDMX",
+    "m": "Gustavo A. Madero",
+    "lt": 19.4839,
+    "ln": -99.1172
+  },
+  {
+    "n": "Tlalpan Centro",
+    "c": "CDMX",
+    "m": "Tlalpan",
+    "lt": 19.2889,
+    "ln": -99.1678
+  },
+  {
+    "n": "Villa Coapa",
+    "c": "CDMX",
+    "m": "Tlalpan",
+    "lt": 19.3,
+    "ln": -99.1292
+  },
+  {
+    "n": "Xochimilco Centro",
+    "c": "CDMX",
+    "m": "Xochimilco",
+    "lt": 19.2611,
+    "ln": -99.1039
+  },
+  {
+    "n": "Ciudad Satélite",
+    "c": "Naucalpan",
+    "m": "Edomex",
+    "lt": 19.5103,
+    "ln": -99.2344
+  },
+  {
+    "n": "Lomas Verdes",
+    "c": "Naucalpan",
+    "m": "Edomex",
+    "lt": 19.5089,
+    "ln": -99.2556
+  },
+  {
+    "n": "Interlomas",
+    "c": "Huixquilucan",
+    "m": "Edomex",
+    "lt": 19.3986,
+    "ln": -99.2811
+  },
+  {
+    "n": "Bosque Real",
+    "c": "Huixquilucan",
+    "m": "Edomex",
+    "lt": 19.4219,
+    "ln": -99.2989
+  },
+  {
+    "n": "Zona Esmeralda",
+    "c": "Atizapán de Zaragoza",
+    "m": "Edomex",
+    "lt": 19.5606,
+    "ln": -99.2886
+  },
+  {
+    "n": "Arboledas",
+    "c": "Tlalnepantla / Atizapán",
+    "m": "Edomex",
+    "lt": 19.5447,
+    "ln": -99.2217
+  },
+  {
+    "n": "Valle Dorado",
+    "c": "Tlalnepantla",
+    "m": "Edomex",
+    "lt": 19.5492,
+    "ln": -99.2081
+  },
+  {
+    "n": "Las Américas",
+    "c": "Ecatepec",
+    "m": "Edomex",
+    "lt": 19.5939,
+    "ln": -99.0222
+  },
+  {
+    "n": "Metepec Centro",
+    "c": "Metepec / Toluca",
+    "m": "Edomex",
+    "lt": 19.255,
+    "ln": -99.6053
+  },
+  {
+    "n": "La Asunción",
+    "c": "Metepec",
+    "m": "Edomex",
+    "lt": 19.2639,
+    "ln": -99.5856
+  },
+  {
+    "n": "Puerta de Hierro",
+    "c": "Zapopan / GDL",
+    "m": "Jalisco",
+    "lt": 20.7108,
+    "ln": -103.415
+  },
+  {
+    "n": "Providencia",
+    "c": "Guadalajara",
+    "m": "Jalisco",
+    "lt": 20.6975,
+    "ln": -103.3853
+  },
+  {
+    "n": "Colonia Americana",
+    "c": "Guadalajara",
+    "m": "Jalisco",
+    "lt": 20.6728,
+    "ln": -103.3642
+  },
+  {
+    "n": "Chapultepec GDL",
+    "c": "Guadalajara",
+    "m": "Jalisco",
+    "lt": 20.6739,
+    "ln": -103.3686
+  },
+  {
+    "n": "Ladrón de Guevara",
+    "c": "Guadalajara",
+    "m": "Jalisco",
+    "lt": 20.6842,
+    "ln": -103.3756
+  },
+  {
+    "n": "Centro de Guadalajara",
+    "c": "Guadalajara",
+    "m": "Jalisco",
+    "lt": 20.6767,
+    "ln": -103.3469
+  },
+  {
+    "n": "Valle Real",
+    "c": "Zapopan",
+    "m": "Jalisco",
+    "lt": 20.7247,
+    "ln": -103.4419
+  },
+  {
+    "n": "Ciudad Bugambilias",
+    "c": "Zapopan",
+    "m": "Jalisco",
+    "lt": 20.6086,
+    "ln": -103.4544
+  },
+  {
+    "n": "El Palomar",
+    "c": "Tlajomulco / Zapopan",
+    "m": "Jalisco",
+    "lt": 20.575,
+    "ln": -103.4539
+  },
+  {
+    "n": "Tlaquepaque Centro",
+    "c": "Tlaquepaque",
+    "m": "Jalisco",
+    "lt": 20.6406,
+    "ln": -103.3131
+  },
+  {
+    "n": "San Pedro Garza García",
+    "c": "Monterrey",
+    "m": "Nuevo León",
+    "lt": 25.6575,
+    "ln": -100.4022
+  },
+  {
+    "n": "Valle Oriente",
+    "c": "San Pedro",
+    "m": "Nuevo León",
+    "lt": 25.6486,
+    "ln": -100.3328
+  },
+  {
+    "n": "Colonia del Valle MTY",
+    "c": "San Pedro",
+    "m": "Nuevo León",
+    "lt": 25.6597,
+    "ln": -100.3664
+  },
+  {
+    "n": "Centrito Valle",
+    "c": "San Pedro",
+    "m": "Nuevo León",
+    "lt": 25.6606,
+    "ln": -100.3581
+  },
+  {
+    "n": "Chipinque",
+    "c": "San Pedro",
+    "m": "Nuevo León",
+    "lt": 25.6264,
+    "ln": -100.3683
+  },
+  {
+    "n": "Barrio Antiguo",
+    "c": "Monterrey",
+    "m": "Nuevo León",
+    "lt": 25.6667,
+    "ln": -100.3069
+  },
+  {
+    "n": "Centro de Monterrey",
+    "c": "Monterrey",
+    "m": "Nuevo León",
+    "lt": 25.6714,
+    "ln": -100.3086
+  },
+  {
+    "n": "Cumbres MTY",
+    "c": "Monterrey",
+    "m": "Nuevo León",
+    "lt": 25.7186,
+    "ln": -100.3853
+  },
+  {
+    "n": "Mitras Centro",
+    "c": "Monterrey",
+    "m": "Nuevo León",
+    "lt": 25.6967,
+    "ln": -100.3456
+  },
+  {
+    "n": "Contry",
+    "c": "Monterrey",
+    "m": "Nuevo León",
+    "lt": 25.6442,
+    "ln": -100.2861
+  },
+  {
+    "n": "San Jerónimo MTY",
+    "c": "Monterrey",
+    "m": "Nuevo León",
+    "lt": 25.6786,
+    "ln": -100.3639
+  },
+  {
+    "n": "Angelópolis",
+    "c": "Puebla",
+    "m": "Puebla",
+    "lt": 19.0306,
+    "ln": -98.2375
+  },
+  {
+    "n": "Lomas de Angelópolis",
+    "c": "Puebla / San Andrés Cholula",
+    "m": "Puebla",
+    "lt": 18.9986,
+    "ln": -98.2667
+  },
+  {
+    "n": "La Paz Puebla",
+    "c": "Puebla",
+    "m": "Puebla",
+    "lt": 19.0539,
+    "ln": -98.225
+  },
+  {
+    "n": "Centro Histórico Puebla",
+    "c": "Puebla",
+    "m": "Puebla",
+    "lt": 19.0439,
+    "ln": -98.1983
+  },
+  {
+    "n": "Cholula Centro",
+    "c": "San Pedro Cholula",
+    "m": "Puebla",
+    "lt": 19.0628,
+    "ln": -98.3047
+  },
+  {
+    "n": "Zavaleta",
+    "c": "Puebla",
+    "m": "Puebla",
+    "lt": 19.0619,
+    "ln": -98.2464
+  },
+  {
+    "n": "Juriquilla",
+    "c": "Querétaro",
+    "m": "Querétaro",
+    "lt": 20.6978,
+    "ln": -100.4464
+  },
+  {
+    "n": "El Campanario",
+    "c": "Querétaro",
+    "m": "Querétaro",
+    "lt": 20.6136,
+    "ln": -100.3606
+  },
+  {
+    "n": "Centro Histórico QRO",
+    "c": "Querétaro",
+    "m": "Querétaro",
+    "lt": 20.5931,
+    "ln": -100.3928
+  },
+  {
+    "n": "Milenio III",
+    "c": "Querétaro",
+    "m": "Querétaro",
+    "lt": 20.5892,
+    "ln": -100.3547
+  },
+  {
+    "n": "Zibatá",
+    "c": "El Marqués / QRO",
+    "m": "Querétaro",
+    "lt": 20.6694,
+    "ln": -100.3167
+  },
+  {
+    "n": "Paseo de Montejo",
+    "c": "Mérida",
+    "m": "Yucatán",
+    "lt": 20.9856,
+    "ln": -89.6192
+  },
+  {
+    "n": "Altabrisa",
+    "c": "Mérida",
+    "m": "Yucatán",
+    "lt": 21.0117,
+    "ln": -89.5847
+  },
+  {
+    "n": "Montebello",
+    "c": "Mérida",
+    "m": "Yucatán",
+    "lt": 21.0256,
+    "ln": -89.5961
+  },
+  {
+    "n": "Centro Histórico Mérida",
+    "c": "Mérida",
+    "m": "Yucatán",
+    "lt": 20.9672,
+    "ln": -89.6236
+  },
+  {
+    "n": "Temozón Norte",
+    "c": "Mérida",
+    "m": "Yucatán",
+    "lt": 21.0567,
+    "ln": -89.6083
+  },
+  {
+    "n": "Zona Hotelera Cancún",
+    "c": "Cancún",
+    "m": "Quintana Roo",
+    "lt": 21.1378,
+    "ln": -86.7467
+  },
+  {
+    "n": "Puerto Cancún",
+    "c": "Cancún",
+    "m": "Quintana Roo",
+    "lt": 21.1619,
+    "ln": -86.8117
+  },
+  {
+    "n": "Playacar",
+    "c": "Playa del Carmen",
+    "m": "Quintana Roo",
+    "lt": 20.6092,
+    "ln": -87.0864
+  },
+  {
+    "n": "Tulum Centro / La Veleta",
+    "c": "Tulum",
+    "m": "Quintana Roo",
+    "lt": 20.2078,
+    "ln": -87.4722
+  },
+  {
+    "n": "Zona Río Tijuana",
+    "c": "Tijuana",
+    "m": "Baja California",
+    "lt": 32.5292,
+    "ln": -117.0217
+  },
+  {
+    "n": "Playas de Tijuana",
+    "c": "Tijuana",
+    "m": "Baja California",
+    "lt": 32.5317,
+    "ln": -117.1186
+  },
+  {
+    "n": "Otay Centenario",
+    "c": "Tijuana",
+    "m": "Baja California",
+    "lt": 32.5369,
+    "ln": -116.9681
+  },
+  {
+    "n": "Agua Caliente",
+    "c": "Tijuana",
+    "m": "Baja California",
+    "lt": 32.5119,
+    "ln": -117.0097
+  },
+  {
+    "n": "Gran Jardín León",
+    "c": "León",
+    "m": "Guanajuato",
+    "lt": 21.1839,
+    "ln": -101.6961
+  },
+  {
+    "n": "Campestre León",
+    "c": "León",
+    "m": "Guanajuato",
+    "lt": 21.1578,
+    "ln": -101.6908
+  },
+  {
+    "n": "Centro Histórico León",
+    "c": "León",
+    "m": "Guanajuato",
+    "lt": 21.1222,
+    "ln": -101.6828
+  }
+]

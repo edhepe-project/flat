@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Órbitas · Sol y Luna sobre plano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0D16;
+    --panel:#111729;
+    --panel-2:#161D33;
+    --grid:#2E3A5C;
+    --grid-soft:#212a44;
+    --text:#EDEAE0;
+    --text-dim:#8189A4;
+    --gold:#E7B24B;
+    --gold-soft:rgba(231,178,75,0.16);
+    --silver:#AFCBE0;
+    --silver-soft:rgba(175,203,224,0.14);
+    --teal:#5FA8A0;
+    --line:#232B45;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:'Inter',sans-serif;height:100%;}
+  .wrap{
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    min-height:100vh;
+  }
+  @media (max-width: 880px){
+    .wrap{grid-template-columns:1fr; grid-template-rows:auto auto;}
+  }
+  header{
+    grid-column:1/-1;
+    padding:28px 32px 6px 32px;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px; letter-spacing:.18em; color:var(--teal);
+    text-transform:uppercase; margin-bottom:6px;
+  }
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600; font-size:34px; margin:0 0 6px 0;
+    letter-spacing:.01em;
+  }
+  h1 em{ color:var(--gold); font-style:normal; }
+  .sub{
+    color:var(--text-dim); font-size:13.5px; max-width:640px; line-height:1.5;
+    margin-bottom:18px;
+  }
+  .stage{
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  #canvasHost{
+    position:relative; width:100%; max-width:720px; aspect-ratio:1/1;
+  }
+  canvas{ width:100%; height:100%; display:block; }
+  .legend{
+    position:absolute; left:32px; bottom:20px;
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim);
+    display:flex; gap:18px;
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .dot.sun{background:var(--gold); box-shadow:0 0 6px var(--gold);}
+  .dot.moon{background:var(--silver); box-shadow:0 0 6px var(--silver);}
+
+  aside{
+    background:var(--panel);
+    border-left:1px solid var(--line);
+    padding:24px 24px 32px 24px;
+    overflow-y:auto;
+  }
+  .card{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 16px 18px 16px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:12px;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim);
+    margin:0 0 12px 0;
+    display:flex; align-items:center; gap:8px;
+  }
+  .card h2 .bar{width:14px; height:2px; background:var(--teal); display:inline-block;}
+
+  .readout-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px 14px;
+  }
+  .readout{
+    font-family:'JetBrains Mono',monospace;
+  }
+  .readout .k{ font-size:10.5px; color:var(--text-dim); letter-spacing:.04em; }
+  .readout .v{ font-size:16px; margin-top:2px; }
+  .readout .v.sun{ color:var(--gold); }
+  .readout .v.moon{ color:var(--silver); }
+
+  .row{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .row:last-child{ margin-bottom:0; }
+  .row label{ font-size:12.5px; color:var(--text-dim); flex:0 0 auto; min-width:118px; }
+  .row .valtag{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text);
+    min-width:56px; text-align:right;
+  }
+  input[type=range]{
+    -webkit-appearance:none; appearance:none;
+    flex:1; height:3px; background:var(--grid); border-radius:2px; outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:13px; height:13px; border-radius:50%;
+    background:var(--teal); cursor:pointer; border:2px solid #0A0D16;
+  }
+  input[type=number], input[type=text]{
+    background:#0D1220; border:1px solid var(--line); color:var(--text);
+    border-radius:6px; padding:6px 8px; font-family:'JetBrains Mono',monospace;
+    font-size:12.5px; width:100%;
+  }
+  .btnrow{ display:flex; gap:8px; }
+  button{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px;
+    letter-spacing:.02em;
+    background:#0D1220; color:var(--text); border:1px solid var(--line);
+    border-radius:7px; padding:9px 14px; cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  button:hover{ border-color:var(--teal); color:var(--teal); }
+  button.primary{
+    background:var(--teal); color:#0A0D16; border-color:var(--teal);
+  }
+  button.primary:hover{ opacity:.9; color:#0A0D16; }
+  .checks{ display:flex; flex-direction:column; gap:8px; }
+  .check{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-dim); }
+  .check input{ accent-color:var(--teal); width:14px; height:14px; }
+  .footnote{
+    font-size:11px; color:var(--text-dim); line-height:1.5; margin-top:4px;
+  }
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Modelo geométrico · superficie plana</div>
+    <h1>Recorrido de <em>Sol</em> y Luna</h1>
+    <div class="sub">
+      Vista cenital centrada en el polo. El radio de cada astro representa su declinación
+      (centro = 90°N, borde = 90°S); el ángulo representa su posición horaria diaria.
+      Sol: declinación ±23.5° cada 365d 5h 48m · Luna: declinación ±28.6° cada 27.7 días.
+      Modo «Sol preciso» añade la ecuación del tiempo; el modo Analema muestrea la
+      posición solar a hora fija, un punto por día, para revelar el «8».
+    </div>
+  </header>
+
+  <div class="stage">
+    <div id="canvasHost">
+      <canvas id="cv"></canvas>
+      <div class="legend">
+        <span><i class="dot sun"></i>Sol</span>
+        <span><i class="dot moon"></i>Luna</span>
+      </div>
+    </div>
+  </div>
+
+  <aside>
+    <div class="card">
+      <h2><span class="bar"></span>Reproducción</h2>
+      <div class="btnrow" style="margin-bottom:14px;">
+        <button class="primary" id="playBtn" style="flex:1;">▶ Reproducir</button>
+        <button id="resetBtn">Reiniciar</button>
+      </div>
+      <div class="row">
+        <label>Velocidad</label>
+        <input type="range" id="speed" min="0" max="60" step="0.5" value="6">
+        <span class="valtag" id="speedVal">6.0 d/s</span>
+      </div>
+      <div class="row">
+        <label>Día transcurrido</label>
+        <input type="number" id="dayInput" step="0.5" value="0" style="flex:1;">
+        <span></span>
+      </div>
+      <div class="row">
+        <label>Desfase lunar</label>
+        <input type="range" id="moonOffset" min="-15" max="15" step="0.5" value="0">
+        <span class="valtag" id="moonOffsetVal">0 d</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>Precisión del modelo</h2>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="preciseSun"> Sol preciso (ecuación del tiempo)</label>
+        <label class="check"><input type="checkbox" id="lunarNodal"> Ciclo nodal lunar (18.6 años, envolvente)</label>
+      </div>
+      <div class="footnote">
+        «Sol preciso» desfasa el ángulo horario día a día (±16 min aprox.) y es
+        necesario para que el modo Analema trace el «8» real en vez de un punto fijo.
+        El ciclo nodal hace que la declinación máxima de la Luna oscile entre
+        ~18.3° y ~28.6° en vez de permanecer fija en 28.6°.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>Lecturas actuales</h2>
+      <div class="readout-grid">
+        <div class="readout">
+          <div class="k">DÍA (AÑO %)</div>
+          <div class="v" id="rSunDay">0 (0.0%)</div>
+        </div>
+        <div class="readout">
+          <div class="k">DÍA (MES %)</div>
+          <div class="v" id="rMoonDay">0 (0.0%)</div>
+        </div>
+        <div class="readout">
+          <div class="k">DECLINACIÓN SOL</div>
+          <div class="v sun" id="rSunDec">0.00°</div>
+        </div>
+        <div class="readout">
+          <div class="k">DECLINACIÓN LUNA</div>
+          <div class="v moon" id="rMoonDec">0.00°</div>
+        </div>
+        <div class="readout">
+          <div class="k">ECUACIÓN DEL TIEMPO</div>
+          <div class="v" id="rEot">+0.0 min</div>
+        </div>
+        <div class="readout">
+          <div class="k">DEC. MÁX. LUNA (HOY)</div>
+          <div class="v moon" id="rMoonEnv">28.60°</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>Modo analema</h2>
+      <div class="row">
+        <label>Hora fija</label>
+        <input type="range" id="analemaHour" min="0" max="23.75" step="0.25" value="12">
+        <span class="valtag" id="analemaHourVal">12:00</span>
+      </div>
+      <div class="btnrow" style="margin-bottom:12px;">
+        <button class="primary" id="traceAnalemaBtn" style="flex:1;">Trazar analema (1 año)</button>
+        <button id="clearAnalemaBtn">Limpiar</button>
+      </div>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="showAnalema" checked> Mostrar analema trazado</label>
+      </div>
+      <div class="footnote">
+        Muestrea la posición del Sol a la hora elegida, un punto por día durante
+        un año completo, y fuerza el modo «Sol preciso» para revelar el bucle
+        este-oeste de la ecuación del tiempo.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>Estelas</h2>
+      <div class="checks" style="margin-bottom:12px;">
+        <label class="check"><input type="checkbox" id="showSunTrail" checked> Mostrar estela del Sol</label>
+        <label class="check"><input type="checkbox" id="showMoonTrail" checked> Mostrar estela de la Luna</label>
+      </div>
+      <div class="row">
+        <label>Longitud estela</label>
+        <input type="range" id="trailLen" min="200" max="6000" step="100" value="3000">
+        <span class="valtag" id="trailLenVal">3000</span>
+      </div>
+      <div class="footnote">
+        Con velocidad alta y estela larga se revela el patrón espiral completo
+        del ciclo anual (Sol) o mensual (Luna).
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="bar"></span>Notas del modelo</h2>
+      <div class="footnote">
+        Rotación diaria asumida: Sol 24h00m, Luna 24h50m (día lunar promedio).
+        Los anillos marcados corresponden a declinación 66.5°, 23.5°, 0° (ecuador),
+        −23.5° y −66.5°. Este parámetro es ajustable en el código fuente si se
+        requiere otra convención de proyección o de rotación diaria.<br><br>
+        t=0 se define como el equinoccio de marzo (declinación solar = 0,
+        ascendente); la ecuación del tiempo se calcula sobre esa referencia
+        (aprox. estándar, error ~1 min). La declinación solar sigue siendo una
+        senoidal pura — la asimetría del «8» vive en el desfase horario, no en
+        la declinación. El ciclo nodal lunar modela solo la envolvente de
+        declinación máxima (18.3°–28.6°); no incluye evección, variación ni
+        inequidad paraláctica, así que no es una teoría lunar completa.
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  // ---------- Constantes del modelo ----------
+  const TY = 365 + 5/24 + 48/1440;   // periodo declinación solar (días)
+  const TM = 27.7;                   // periodo declinación lunar (días)
+  const DEC_SUN_MAX = 23.5;
+  const DEC_MOON_MAX = 28.6;
+  const DAY_SUN = 1;                 // rotación diaria del sol (días)
+  const DAY_MOON = 1 + 50/1440;      // rotación diaria de la luna (~24h50m)
+
+  // t=0 se define como el equinoccio de marzo (dec. sol = 0, ascendente),
+  // que cae ~día 79 del año calendario (1-indexado, año no bisiesto).
+  const EQUINOX_OFFSET_DAYS = 79;
+
+  // Envolvente de declinación máxima lunar (ciclo nodal / regresión de nodos, 18.6 años)
+  const OBLIQUITY = 23.44;           // oblicuidad terrestre media (°)
+  const LUNAR_INCL = 5.145;          // inclinación orbital lunar sobre la eclíptica (°)
+  const T_NODAL = 18.6*365.25;       // periodo de regresión nodal (días) ≈ 6793.6 d
+
+  // ---------- Canvas setup ----------
+  const canvas = document.getElementById('cv');
+  const ctx = canvas.getContext('2d');
+  const host = document.getElementById('canvasHost');
+  let W=0,H=0,DPR=1,cx=0,cy=0,Rmax=0;
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio||1, 2);
+    const rect = host.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = W*DPR; canvas.height = H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    cx = W/2; cy = H/2;
+    Rmax = Math.min(W,H)*0.46;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // colatitud lineal: centro=90°(polo), borde=-90°
+  function radiusFor(dec){ return Rmax*(90-dec)/180; }
+
+  // ---------- Estado ----------
+  let t = 0;             // día transcurrido (referencia)
+  let playing = false;
+  let speed = 6;          // días simulados por segundo
+  let moonOffset = 0;
+  let showSunTrail = true, showMoonTrail = true;
+  let trailMax = 3000;
+  let sunTrail = [];
+  let moonTrail = [];
+  let lastFrame = null;
+  let preciseSun = false;
+  let lunarNodal = false;
+  let analemaPts = [];
+  let showAnalema = true;
+
+  // Aproximación estándar de la ecuación del tiempo (min), error típico ~1 min.
+  // gamma se referencia al 1 de enero; tt=0 (equinoccio) equivale al día ~79.
+  function eotMinutes(tt){
+    const tyMod = ((tt % TY)+TY)%TY;
+    const dayOfYear = (tyMod + EQUINOX_OFFSET_DAYS) % 365;
+    const gamma = 2*Math.PI*(dayOfYear-1)/365;
+    return 229.18*(0.000075 + 0.001868*Math.cos(gamma) - 0.032077*Math.sin(gamma)
+                    - 0.014615*Math.cos(2*gamma) - 0.040849*Math.sin(2*gamma));
+  }
+
+  // Envolvente de declinación máxima lunar por regresión nodal (18.6 años).
+  function moonMaxDec(tt){
+    return OBLIQUITY + LUNAR_INCL*Math.cos(2*Math.PI*tt/T_NODAL);
+  }
+
+  function decSun(tt){ return DEC_SUN_MAX*Math.sin(2*Math.PI*tt/TY); }
+  function decMoon(tt){
+    const env = lunarNodal ? moonMaxDec(tt) : DEC_MOON_MAX;
+    return env*Math.sin(2*Math.PI*(tt+moonOffset)/TM);
+  }
+  function angleSun(tt, forcePrecise){
+    const usePrecise = forcePrecise!==undefined ? forcePrecise : preciseSun;
+    const tphase = usePrecise ? (tt + eotMinutes(tt)/1440) : tt;
+    return 2*Math.PI*(((tphase % DAY_SUN)+DAY_SUN)%DAY_SUN)/DAY_SUN;
+  }
+  function angleMoon(tt){ return 2*Math.PI*(((tt % DAY_MOON)+DAY_MOON)%DAY_MOON)/DAY_MOON; }
+
+  function posFrom(r, ang){
+    return { x: cx + r*Math.sin(ang), y: cy - r*Math.cos(ang) };
+  }
+
+  // ---------- Dibujo ----------
+  const decRings = [90, 66.5, 23.5, 0, -23.5, -66.5, -90];
+  const ringLabels = {90:'Polo',66.5:'66.5°',23.5:'Tróp. Cáncer 23.5°',0:'Ecuador',
+                       '-23.5':'Tróp. Capricornio −23.5°','-66.5':'−66.5°','-90':''};
+
+  function drawGrid(){
+    ctx.save();
+    // bandas de tropicos
+    const rSunOuter = radiusFor(-DEC_SUN_MAX), rSunInner = radiusFor(DEC_SUN_MAX);
+    ctx.beginPath();
+    ctx.arc(cx,cy,rSunOuter,0,Math.PI*2);
+    ctx.arc(cx,cy,rSunInner,0,Math.PI*2, true);
+    ctx.fillStyle = 'rgba(231,178,75,0.05)';
+    ctx.fill('evenodd');
+
+    const rMoonOuter = radiusFor(-DEC_MOON_MAX), rMoonInner = radiusFor(DEC_MOON_MAX);
+    ctx.beginPath();
+    ctx.arc(cx,cy,rMoonOuter,0,Math.PI*2);
+    ctx.arc(cx,cy,rMoonInner,0,Math.PI*2, true);
+    ctx.fillStyle = 'rgba(175,203,224,0.045)';
+    ctx.fill('evenodd');
+
+    // radios (spokes)
+    ctx.strokeStyle = 'rgba(46,58,92,0.35)';
+    ctx.lineWidth = 1;
+    for(let i=0;i<12;i++){
+      const a = i*Math.PI/6;
+      const p = posFrom(Rmax, a);
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(p.x,p.y); ctx.stroke();
+    }
+
+    // anillos
+    decRings.forEach(d=>{
+      const r = radiusFor(d);
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle = d===0 ? 'rgba(140,150,180,0.55)' : 'rgba(46,58,92,0.55)';
+      ctx.lineWidth = d===0 ? 1.2 : 1;
+      ctx.stroke();
+    });
+
+    ctx.restore();
+
+    // etiquetas
+    ctx.save();
+    ctx.font = "11px 'JetBrains Mono', monospace";
+    ctx.fillStyle = '#7C88A6';
+    ctx.textBaseline = 'middle';
+    [90,66.5,23.5,0,-23.5,-66.5].forEach(d=>{
+      const r = radiusFor(d);
+      const label = d===90 ? 'Polo N' : (d===0?'Ecuador': d+'°');
+      ctx.fillText(label, cx+6, cy-r);
+    });
+    ctx.restore();
+  }
+
+  function drawTrail(trail, color){
+    if(trail.length<2) return;
+    ctx.save();
+    ctx.lineJoin='round'; ctx.lineCap='round';
+    for(let i=1;i<trail.length;i++){
+      const p0=trail[i-1], p1=trail[i];
+      const alpha = (i/trail.length)*0.85;
+      ctx.strokeStyle = color(alpha);
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(p0.x,p0.y); ctx.lineTo(p1.x,p1.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function traceAnalema(hour){
+    const pts = [];
+    const nDays = Math.round(TY);
+    for(let i=0;i<=nDays;i++){
+      const tt = i + hour/24;
+      const dS = decSun(tt);
+      const aS = angleSun(tt, true); // el analema siempre usa el Sol preciso
+      pts.push(posFrom(radiusFor(dS), aS));
+    }
+    return pts;
+  }
+
+  function drawAnalema(pts){
+    if(pts.length<2) return;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(231,178,75,0.55)';
+    ctx.lineWidth = 1.3;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,227,163,0.85)';
+    for(const p of pts){
+      ctx.beginPath(); ctx.arc(p.x,p.y,1.6,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawBody(p, glow, core, radius){
+    ctx.save();
+    const grad = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,radius*4);
+    grad.addColorStop(0, glow);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(p.x,p.y,radius*4,0,Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = core;
+    ctx.beginPath(); ctx.arc(p.x,p.y,radius,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    drawGrid();
+
+    if(showSunTrail) drawTrail(sunTrail, a=>`rgba(231,178,75,${a})`);
+    if(showMoonTrail) drawTrail(moonTrail, a=>`rgba(175,203,224,${a})`);
+    if(showAnalema) drawAnalema(analemaPts);
+
+    const dS = decSun(t), aS = angleSun(t);
+    const dM = decMoon(t), aM = angleMoon(t);
+    const pS = posFrom(radiusFor(dS), aS);
+    const pM = posFrom(radiusFor(dM), aM);
+
+    drawBody(pM, 'rgba(175,203,224,0.55)', '#DCEAF4', 5);
+    drawBody(pS, 'rgba(231,178,75,0.75)', '#FFE3A3', 6.5);
+
+    // readouts
+    const sunYearPct = (((t % TY)+TY)%TY)/TY*100;
+    const moonMonthPct = ((((t+moonOffset) % TM)+TM)%TM)/TM*100;
+    document.getElementById('rSunDay').textContent =
+      `${t.toFixed(1)} (${sunYearPct.toFixed(1)}%)`;
+    document.getElementById('rMoonDay').textContent =
+      `${(t+moonOffset).toFixed(1)} (${moonMonthPct.toFixed(1)}%)`;
+    document.getElementById('rSunDec').textContent = `${dS.toFixed(2)}°`;
+    document.getElementById('rMoonDec').textContent = `${dM.toFixed(2)}°`;
+    document.getElementById('dayInput').value = t.toFixed(1);
+
+    const eotNow = eotMinutes(t);
+    document.getElementById('rEot').textContent = `${eotNow>=0?'+':''}${eotNow.toFixed(1)} min`;
+    const envNow = lunarNodal ? moonMaxDec(t) : DEC_MOON_MAX;
+    document.getElementById('rMoonEnv').textContent = `${envNow.toFixed(2)}°`;
+  }
+
+  function pushTrails(){
+    sunTrail.push(posFrom(radiusFor(decSun(t)), angleSun(t)));
+    moonTrail.push(posFrom(radiusFor(decMoon(t)), angleMoon(t)));
+    if(sunTrail.length>trailMax) sunTrail.shift();
+    if(moonTrail.length>trailMax) moonTrail.shift();
+  }
+
+  function loop(ts){
+    if(lastFrame==null) lastFrame = ts;
+    const dtReal = (ts-lastFrame)/1000;
+    lastFrame = ts;
+    if(playing){
+      t += dtReal*speed;
+      pushTrails();
+    }
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Controles ----------
+  const playBtn = document.getElementById('playBtn');
+  playBtn.addEventListener('click', ()=>{
+    playing = !playing;
+    playBtn.textContent = playing ? '❚❚ Pausar' : '▶ Reproducir';
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    t=0; sunTrail=[]; moonTrail=[]; render();
+  });
+
+  const speedEl = document.getElementById('speed');
+  const speedVal = document.getElementById('speedVal');
+  speedEl.addEventListener('input', ()=>{
+    speed = parseFloat(speedEl.value);
+    speedVal.textContent = speed.toFixed(1)+' d/s';
+  });
+
+  const dayInput = document.getElementById('dayInput');
+  dayInput.addEventListener('change', ()=>{
+    t = parseFloat(dayInput.value)||0;
+    sunTrail=[]; moonTrail=[];
+    render();
+  });
+
+  const moonOffsetEl = document.getElementById('moonOffset');
+  const moonOffsetVal = document.getElementById('moonOffsetVal');
+  moonOffsetEl.addEventListener('input', ()=>{
+    moonOffset = parseFloat(moonOffsetEl.value);
+    moonOffsetVal.textContent = moonOffset.toFixed(1)+' d';
+    moonTrail=[];
+  });
+
+  document.getElementById('showSunTrail').addEventListener('change', e=>{
+    showSunTrail = e.target.checked;
+  });
+  document.getElementById('showMoonTrail').addEventListener('change', e=>{
+    showMoonTrail = e.target.checked;
+  });
+
+  const trailLenEl = document.getElementById('trailLen');
+  const trailLenVal = document.getElementById('trailLenVal');
+  trailLenEl.addEventListener('input', ()=>{
+    trailMax = parseInt(trailLenEl.value);
+    trailLenVal.textContent = trailMax;
+  });
+
+  document.getElementById('preciseSun').addEventListener('change', e=>{
+    preciseSun = e.target.checked;
+    sunTrail = [];
+  });
+  document.getElementById('lunarNodal').addEventListener('change', e=>{
+    lunarNodal = e.target.checked;
+    moonTrail = [];
+  });
+
+  function hourLabel(h){
+    const hh = Math.floor(h);
+    const mm = Math.round((h-hh)*60);
+    return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  }
+  const analemaHourEl = document.getElementById('analemaHour');
+  const analemaHourVal = document.getElementById('analemaHourVal');
+  analemaHourEl.addEventListener('input', ()=>{
+    analemaHourVal.textContent = hourLabel(parseFloat(analemaHourEl.value));
+  });
+
+  document.getElementById('traceAnalemaBtn').addEventListener('click', ()=>{
+    const hour = parseFloat(analemaHourEl.value);
+    // el analema requiere el Sol preciso para mostrar el bucle este-oeste
+    if(!preciseSun){
+      preciseSun = true;
+      document.getElementById('preciseSun').checked = true;
+    }
+    analemaPts = traceAnalema(hour);
+    showAnalema = true;
+    document.getElementById('showAnalema').checked = true;
+  });
+  document.getElementById('clearAnalemaBtn').addEventListener('click', ()=>{
+    analemaPts = [];
+  });
+  document.getElementById('showAnalema').addEventListener('change', e=>{
+    showAnalema = e.target.checked;
+  });
+
+  render();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
