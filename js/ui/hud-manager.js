@@ -132,7 +132,16 @@ class HUDManager {
       if (pipAlert) {
         if (data.eclipse && data.eclipse.isLunarEclipse) {
           pipAlert.classList.remove('hidden');
-          pipAlert.textContent = data.eclipse.lunarEclipseFactor > 0.65 ? '🔴 ECLIPSE LUNAR TOTAL (LUNA DE SANGRE)' : '🌘 ECLIPSE LUNAR PARCIAL';
+          if (data.eclipse.eclipsePhaseType === 'total' || data.eclipse.lunarEclipseFactor > 0.65) {
+            pipAlert.textContent = '🔴 ECLIPSE LUNAR TOTAL (LUNA DE SANGRE)';
+            pipAlert.style.color = '#ef4444';
+          } else if (data.eclipse.eclipsePhaseType === 'partial' || data.eclipse.lunarEclipseFactor > 0.25) {
+            pipAlert.textContent = '🌘 ECLIPSE LUNAR PARCIAL (UMBRA)';
+            pipAlert.style.color = '#f97316';
+          } else {
+            pipAlert.textContent = '🌑 ECLIPSE LUNAR PENUMBRAL';
+            pipAlert.style.color = '#cbd5e1';
+          }
         } else {
           pipAlert.classList.add('hidden');
         }

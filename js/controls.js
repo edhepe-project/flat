@@ -48,6 +48,7 @@ class NavigationControls {
 
   get isPlacingObserver() { return this.observer.isPlacingObserver; }
   get observerLatLon() { return this.observer.observerLatLon; }
+  get observerPosition() { return this.observer.observerPosition; }
 
   topView() {
     this.flyTo({ x: 0, y: 900, z: 1, targetX: 0, targetY: 0, targetZ: 0, duration: 1000 });

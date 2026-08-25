@@ -89,14 +89,26 @@ class Luminaries {
     const moonMat = new THREE.ShaderMaterial({
       uniforms: cs.moonShaderUniforms,
       vertexShader: `
+        uniform vec3 uSunWorldPos;
         varying vec3 vWorldNormal;
         varying vec3 vWorldPosition;
+        varying vec3 vLightDir;     // dirección luz en espacio de cámara
+        varying vec3 vViewNormal;   // normal en espacio de cámara
         varying vec2 vUv;
         void main() {
-          vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
           vec4 worldPos = modelMatrix * vec4(position, 1.0);
+          vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
           vWorldPosition = worldPos.xyz;
           vUv = uv;
+
+          // Calcular dirección y normal en espacio de cámara (funciona para cámara principal Y pip)
+          // La cámara pip sigue a la Luna (lookAt), por lo que viewMatrix cancela la rotación orbital diaria
+          // resultando en la dirección Sol-Luna que solo cambia al ritmo sinódico real (29.5 días)
+          vec4 sunViewPos  = viewMatrix * vec4(uSunWorldPos, 1.0);
+          vec4 fragViewPos = viewMatrix * worldPos;
+          vLightDir   = normalize(sunViewPos.xyz - fragViewPos.xyz);
+          vViewNormal = normalize((viewMatrix * modelMatrix * vec4(normal, 0.0)).xyz);
+
           gl_Position = projectionMatrix * viewMatrix * worldPos;
         }
       `,
@@ -107,6 +119,8 @@ class Luminaries {
         uniform float uEclipseFactor;
         varying vec3 vWorldNormal;
         varying vec3 vWorldPosition;
+        varying vec3 vLightDir;
+        varying vec3 vViewNormal;
         varying vec2 vUv;
 
         float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -121,29 +135,36 @@ class Luminaries {
         }
 
         void main() {
-          vec3 lightDir = normalize(uSunWorldPos - vWorldPosition);
-          vec3 viewDir  = normalize(-vWorldPosition);
-          float NdotL   = dot(vWorldNormal, lightDir);
-          float NdotV   = max(0.0, dot(vWorldNormal, viewDir));
+          // Dirección de la luz en espacio de cámara
+          vec3 lightDir = normalize(vLightDir);
+          
+          // En espacio de vista de Three.js / OpenGL, la cámara mira hacia -Z, por lo que el vector hacia el observador es +Z (0,0,1)
+          vec3 viewDir = vec3(0.0, 0.0, 1.0);
+          vec3 normal  = normalize(vViewNormal);
+
+          float NdotL  = dot(normal, lightDir);
+          float NdotV  = max(0.0, dot(normal, viewDir));
 
           float macroPorosity = fbm(vUv * 7.0);
           float microCells    = fbm(vUv * 22.0);
           float nanoLattice   = fbm(vUv * 48.0);
           float deepCraters   = pow(fbm(vUv * 14.0), 2.2);
           float porosityPattern = macroPorosity*0.45+microCells*0.35+nanoLattice*0.20-deepCraters*0.35;
-          float albedo = mix(0.55, 1.30, smoothstep(0.20, 0.75, porosityPattern));
-          float poreDepthShading = mix(0.65, 1.0, smoothstep(0.25, 0.65, porosityPattern));
+          float albedo = mix(0.70, 1.25, smoothstep(0.20, 0.75, porosityPattern));
+          float poreDepthShading = mix(0.75, 1.0, smoothstep(0.25, 0.65, porosityPattern));
           vec3 aerogelBase = vec3(0.92, 0.95, 1.0) * albedo;
 
+          // Máscara de sombra nítida (terminador lunar real)
+          float shadowMask = smoothstep(-0.015, 0.025, NdotL);
           float directSun = max(0.0, NdotL);
-          float shadowMask = smoothstep(-0.02, 0.04, NdotL);
-          float retroReflection = directSun * (1.0 + 0.20 * pow(directSun, 2.0));
-          float sunIntensity = shadowMask * (0.15 + 0.85 * retroReflection * poreDepthShading);
+          float retroReflection = directSun * (1.0 + 0.35 * pow(directSun, 2.0));
+          float sunIntensity = shadowMask * (0.05 + 0.95 * retroReflection * poreDepthShading);
+          
           float rim = pow(1.0 - NdotV, 3.5);
-          vec3 rayleighGlow = vec3(0.35, 0.65, 0.95) * rim * shadowMask * 0.28;
+          vec3 rayleighGlow = vec3(0.35, 0.65, 0.95) * rim * shadowMask * 0.15;
 
-          float shadowPoreContrast = pow(albedo, 1.6);
-          vec3 darkSideSurface = vec3(0.022, 0.028, 0.038) * shadowPoreContrast;
+          // Lado nocturno de la Luna (oscuridad espacial profunda para que el corte de fase sea nítido)
+          vec3 darkSideSurface = vec3(0.004, 0.006, 0.009);
           vec3 litColor = mix(darkSideSurface, aerogelBase * sunIntensity + rayleighGlow, shadowMask);
           litColor = mix(litColor, litColor + uEmissive * albedo, uEclipseFactor);
           gl_FragColor = vec4(clamp(litColor, 0.0, 1.0), 1.0);
@@ -176,6 +197,8 @@ class Luminaries {
     cs.moonFlare.scale.set(34, 34, 1);
     cs.moonGroup.add(cs.moonFlare);
 
+    // La Luna NO emite luz propia: solo refleja la del Sol
+    // Los spotlights/pointlights se inicializan a 0 y permanecen en 0 (se controlan en celestial.js)
     cs.moonSpotlight = new THREE.SpotLight(0xafcbe0, 0.0);
     cs.moonSpotlight.angle    = Math.PI / 2.8;
     cs.moonSpotlight.penumbra = 0.95;

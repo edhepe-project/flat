@@ -101,8 +101,9 @@ class FlatEarthApp {
     this.ui = new UIManager(this);
     window.appUI = this.ui;
 
-    // 6. Mini Cámara PiP (Telescopio Lunar desde el Observador)
+    // 6. Mini Cámara PiP (Telescopio Lunar) y Observatorio de Bóveda Completa
     this.initMoonPiP();
+    this.initObservatoryViewer();
   }
 
   initMoonPiP() {
@@ -114,11 +115,28 @@ class FlatEarthApp {
       antialias: true,
       alpha: true
     });
-    this.pipRenderer.setSize(240, 180);
+    this.pipRenderer.setSize(260, 200);
     this.pipRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    this.pipCamera = new THREE.PerspectiveCamera(12, 240 / 180, 1, 3000);
+    // FOV estrecho calibrado (8.0°) enfocado exclusivamente en la Luna
+    this.pipCamera = new THREE.PerspectiveCamera(8.0, 260 / 200, 1, 3000);
     this.isMoonPipActive = false;
+  }
+
+  initObservatoryViewer() {
+    this.obsCanvas = document.getElementById('observatory-canvas');
+    if (!this.obsCanvas) return;
+
+    this.obsRenderer = new THREE.WebGLRenderer({
+      canvas: this.obsCanvas,
+      antialias: true,
+      alpha: false
+    });
+    this.obsRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Cámara de Gran Angular (75°) para cubrir todo el cielo nocturno y la bóveda celeste
+    this.obsCamera = new THREE.PerspectiveCamera(75, 16 / 9, 0.5, 4000);
+    this.isObservatoryActive = false;
   }
 
   initEvents() {
@@ -168,18 +186,59 @@ class FlatEarthApp {
     // Renderizar escena principal
     this.renderer.render(this.scene, this.camera);
 
-    // Renderizar mini cámara PiP si está activa
+    // 1. Renderizar mini cámara PiP si está activa (Telescopio Lunar de Alta Definición)
     if (this.isMoonPipActive && this.pipRenderer && this.pipCamera && this.controls && this.controls.observerPosition && this.celestial) {
       const obsPos = this.controls.observerPosition;
-      this.pipCamera.position.set(obsPos.x, 3.5, obsPos.z);
+      this.pipCamera.position.set(obsPos.x, 0.8, obsPos.z);
+      this.pipCamera.up.set(0, 1, 0);
+      
       const moonPos = this.celestial.moonGroup.position;
       this.pipCamera.lookAt(moonPos.x, moonPos.y, moonPos.z);
+      this.pipCamera.updateMatrixWorld(true);
+
+      const flare = this.celestial.moonFlare;
+      const prevFlareVis = flare ? flare.visible : true;
+      if (flare) flare.visible = false; // Ocultar halo para terminador nítido
+
       this.pipRenderer.render(this.scene, this.pipCamera);
+
+      if (flare) flare.visible = prevFlareVis;
+    }
+
+    // 2. Renderizar Observatorio de Ventana Completa (Gran Angular de Bóveda Celeste 360°)
+    if (this.isObservatoryActive && this.obsRenderer && this.obsCamera && this.controls && this.controls.observerPosition && this.celestial) {
+      const obsPos = this.controls.observerPosition;
+      const canvas = this.obsCanvas;
+      
+      if (canvas) {
+        const w = canvas.clientWidth || 800;
+        const h = canvas.clientHeight || 500;
+        if (canvas.width !== w || canvas.height !== h) {
+          this.obsRenderer.setSize(w, h, false);
+          this.obsCamera.aspect = w / h;
+          this.obsCamera.updateProjectionMatrix();
+        }
+      }
+
+      this.obsCamera.position.set(obsPos.x, 0.8, obsPos.z);
+      this.obsCamera.up.set(0, 1, 0);
+
+      // Orientación del Observatorio: mirar hacia el horizonte exterior / cenit (elevación 45°)
+      const len = Math.sqrt(obsPos.x * obsPos.x + obsPos.z * obsPos.z) || 1;
+      const dirX = obsPos.x / len;
+      const dirZ = obsPos.z / len;
+      
+      this.obsCamera.lookAt(
+        obsPos.x + dirX * 120,
+        85, // Altura del firmamento y luminarias
+        obsPos.z + dirZ * 120
+      );
+      this.obsCamera.updateMatrixWorld(true);
+
+      this.obsRenderer.render(this.scene, this.obsCamera);
     }
   }
 }
 
-// Inicializar cuando el DOM esté listo
-window.addEventListener('DOMContentLoaded', () => {
-  window.app = new FlatEarthApp();
-});
+// Nota: La inicialización de FlatEarthApp se delega a js/ui/component-loader.js
+// para asegurar que todos los templates HTML estén inyectados en el DOM.

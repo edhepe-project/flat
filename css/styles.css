@@ -1227,13 +1227,13 @@ input[type="number"] {
 .measure-click-panel { margin-bottom: 8px; }
 .measure-result-title { font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px; }
 
-/* PIP Telescope */
+/* ══ 1. PIP TELESCOPE ══ */
 .pip-panel {
   position: absolute;
   right: 80px;
   bottom: 65px;
-  width: 260px;
-  background: rgba(10,16,28,0.95);
+  width: 285px;
+  background: rgba(10,16,28,0.96);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(56,189,248,0.35) !important;
   border-radius: 14px !important;
@@ -1243,12 +1243,33 @@ input[type="number"] {
   transition: all 0.3s ease;
 }
 .pip-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px; }
-.pip-title { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #fff; }
+.pip-title { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
+.pip-header-actions { display: flex; align-items: center; gap: 6px; }
+.pip-btn-action {
+  background: rgba(56,189,248,0.15);
+  border: 1px solid rgba(56,189,248,0.35);
+  color: #38bdf8;
+  font-size: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+.pip-btn-action:hover {
+  background: rgba(56,189,248,0.3);
+  color: #fff;
+  border-color: #38bdf8;
+}
 .pip-icon { color: var(--moon-silver); }
 .pip-viewer {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 200px;
   background: radial-gradient(circle at center, #0b1528 0%, #030712 100%);
   border-radius: 10px;
   overflow: hidden;
@@ -1259,9 +1280,9 @@ input[type="number"] {
 }
 .pip-canvas { width: 100%; height: 100%; display: block; }
 .pip-reticle { position: absolute; pointer-events: none; }
-.pip-reticle-circle { inset: 0; border: 1px dashed rgba(56,189,248,0.2); border-radius: 50%; margin: 15px; }
-.pip-reticle-v { left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(56,189,248,0.15); }
-.pip-reticle-h { top: 50%; left: 0; right: 0; height: 1px; background: rgba(56,189,248,0.15); }
+.pip-reticle-circle { inset: 0; border: 1px dashed rgba(56,189,248,0.25); border-radius: 50%; margin: 16px; }
+.pip-reticle-v { left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(56,189,248,0.2); }
+.pip-reticle-h { top: 50%; left: 0; right: 0; height: 1px; background: rgba(56,189,248,0.2); }
 .pip-badge { position: absolute; bottom: 6px; left: 8px; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.65); padding: 2px 6px; border-radius: 4px; }
 .pip-info { margin-top: 8px; font-size: 11px; }
 .pip-info-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
@@ -1269,6 +1290,107 @@ input[type="number"] {
 .pip-info-value { color: #38bdf8; font-family: 'JetBrains Mono', monospace; }
 .pip-phase-val { color: #fff; font-size: 10.5px; }
 .pip-eclipse-alert { margin-top: 4px; padding: 4px 6px; border-radius: 4px; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.5); color: #fca5a5; font-size: 10px; font-weight: 600; text-align: center; }
+
+/* ══ 2. OBSERVATORIO VENTANA COMPLETA ══ */
+.observatory-dialog {
+  width: 90vw;
+  max-width: 1000px;
+  height: 80vh;
+  max-height: 700px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8, 12, 24, 0.98) !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.95);
+}
+.observatory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.observatory-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.observatory-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.observatory-compass-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56,189,248,0.12);
+  border: 1px solid rgba(56,189,248,0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.observatory-viewport-wrap {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #070d1e 0%, #02040a 100%);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.observatory-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.sky-cardinal {
+  position: absolute;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  background: rgba(0,0,0,0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.sky-cardinal-n { top: 8px; left: 50%; transform: translateX(-50%); color: #ef4444; }
+.sky-cardinal-s { bottom: 8px; left: 50%; transform: translateX(-50%); color: #38bdf8; }
+.sky-cardinal-e { right: 8px; top: 50%; transform: translateY(-50%); }
+.sky-cardinal-w { left: 8px; top: 50%; transform: translateY(-50%); }
+.sky-zenith-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  color: rgba(56,189,248,0.3);
+  font-weight: 600;
+  pointer-events: none;
+}
+.observatory-hud {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(10,16,30,0.85);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  pointer-events: none;
+}
+.obs-hud-col { display: flex; gap: 6px; font-size: 11.5px; }
+.obs-hud-label { color: var(--text-muted); }
+.obs-hud-val { color: #fff; font-weight: 600; }
 
 /* Modal de Coordenadas */
 .modal-close-btn { position: absolute; top: 16px; right: 16px; font-size: 18px; }

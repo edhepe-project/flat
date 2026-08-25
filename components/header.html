@@ -1,0 +1,128 @@
+<!-- App Header / Search Bar -->
+<header class="app-header glass-panel">
+  <div class="brand">
+    <div class="brand-icon">
+      <i class="fa-solid fa-earth-americas"></i>
+    </div>
+    <div class="brand-text">
+      <h1>TerraPlana <span>3D Pro</span></h1>
+      <p>Modelo Astronómico Azimutal Equidistante</p>
+    </div>
+  </div>
+
+  <div class="header-search-wrap">
+    <div class="header-search-inner">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="city-search" placeholder="Buscar ciudad, país o lugar..." autocomplete="off" class="header-search-input">
+      <button id="btn-clear-search" class="btn-clear-search hidden" title="Desmarcar y limpiar búsqueda">
+        <i class="fa-solid fa-circle-xmark"></i>
+      </button>
+      <div id="search-results" class="search-dropdown hidden"></div>
+    </div>
+    <button id="btn-open-coord-modal" class="btn btn-primary btn-coord-modal" title="Búsqueda avanzada de Latitud / Longitud">
+      <i class="fa-solid fa-crosshairs"></i>
+      <span>Coordenadas</span>
+    </button>
+  </div>
+
+  <div class="quick-stats">
+    <!-- Time Travel / Date Selector Button -->
+    <div class="time-trigger-wrap">
+      <button id="btn-open-time-menu" class="stat-pill btn-time-trigger" title="Viaje en el Tiempo · Elegir Fecha y Hora Exacta">
+        <i class="fa-solid fa-calendar-days tt-icon"></i>
+        <span id="current-datetime-display" class="tt-datetime">2026-08-23 00:00 UTC</span>
+        <i class="fa-solid fa-chevron-down tt-chevron"></i>
+      </button>
+
+      <!-- Dropdown de Selección de Fecha y Eventos -->
+      <div id="time-travel-dropdown" class="glass-panel tt-dropdown hidden">
+        
+        <div class="tt-dropdown-header">
+          <div class="tt-dropdown-title">
+            <i class="fa-solid fa-clock-rotate-left tt-icon"></i>
+            <span>Viaje en el Tiempo Astronómico</span>
+          </div>
+          <button id="btn-time-now" class="btn btn-secondary btn-sm" title="Volver a la fecha actual real">
+            <i class="fa-solid fa-rotate"></i> Hoy
+          </button>
+        </div>
+
+        <!-- Selector de Fecha y Hora -->
+        <div class="tt-date-section">
+          <label class="label-muted">Fecha y Hora UTC:</label>
+          <div class="tt-date-row">
+            <input type="date" id="time-input-date" class="tt-input tt-input-date">
+            <input type="time" id="time-input-time" class="tt-input tt-input-time">
+            <button id="btn-apply-custom-date" class="btn btn-primary btn-sm" title="Aplicar Fecha">
+              <i class="fa-solid fa-check"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Saltos rápidos de tiempo (+ / -) -->
+        <div class="tt-steps-section">
+          <div class="tt-steps-label">Saltos Rápidos de Tiempo:</div>
+          <div class="tt-steps-grid">
+            <button class="btn-time-step btn btn-secondary btn-xs" data-step="-365.25">-1 Año</button>
+            <button class="btn-time-step btn btn-secondary btn-xs" data-step="-29.53">-1 Mes</button>
+            <button class="btn-time-step btn btn-secondary btn-xs" data-step="-1">-1 Día</button>
+            <button class="btn-time-step btn btn-secondary btn-xs" data-step="-0.04166">-1 Hora</button>
+            <button class="btn-time-step btn btn-secondary btn-xs" data-step="365.25">+1 Año</button>
+            <button class="btn-time-step btn btn-secondary btn-xs" data-step="29.53">+1 Mes</button>
+            <button class="btn-time-step btn btn-secondary btn-xs" data-step="1">+1 Día</button>
+            <button class="btn-time-step btn btn-secondary btn-xs" data-step="0.04166">+1 Hora</button>
+          </div>
+        </div>
+
+        <!-- Presets de Eclipses y Eventos Históricos / Futuros -->
+        <div>
+          <div class="tt-steps-label">Eventos Astronómicos Destacados:</div>
+          <div class="tt-presets-list">
+            <button class="btn-time-preset" data-date="2026-03-03T11:34:00Z">
+              <span class="preset-badge badge-lunar">🔴 Luna de Sangre</span>
+              <span class="preset-name">03 Mar 2026</span>
+            </button>
+            <button class="btn-time-preset" data-date="2026-08-12T17:47:00Z">
+              <span class="preset-badge badge-solar">🌑 Solar Total</span>
+              <span class="preset-name">12 Ago 2026 (España/Ártico)</span>
+            </button>
+            <button class="btn-time-preset" data-date="2024-04-08T18:18:00Z">
+              <span class="preset-badge badge-solar">🌑 Solar Total</span>
+              <span class="preset-name">08 Abr 2024 (Gran Eclipse)</span>
+            </button>
+            <button class="btn-time-preset" data-date="2027-08-02T10:07:00Z">
+              <span class="preset-badge badge-solar">🌑 Solar Total</span>
+              <span class="preset-name">02 Ago 2027 (Europa/África)</span>
+            </button>
+            <button class="btn-time-preset" data-date="2028-12-31T16:53:00Z">
+              <span class="preset-badge badge-lunar">🔴 Luna de Sangre</span>
+              <span class="preset-name">31 Dic 2028 (Año Nuevo)</span>
+            </button>
+            <button class="btn-time-preset" data-date="2026-06-21T12:00:00Z">
+              <span class="preset-badge badge-solstice">☀️ Solsticio Verano</span>
+              <span class="preset-name">21 Jun 2026</span>
+            </button>
+            <button class="btn-time-preset" data-date="2026-12-21T12:00:00Z">
+              <span class="preset-badge badge-solstice">❄️ Solsticio Invierno</span>
+              <span class="preset-name">21 Dic 2026</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="stat-pill" title="Declinación Solar actual">
+      <span class="label">Dec. Sol:</span>
+      <span id="sun-status" class="value sun-gold">0.00°</span>
+    </div>
+    <div class="stat-pill" title="Declinación Lunar actual">
+      <span class="label">Dec. Luna:</span>
+      <span id="moon-status" class="value moon-silver">0.00°</span>
+    </div>
+    <div class="stat-pill" title="Fase Lunar y porcentaje de reflejo">
+      <span class="label">Luna:</span>
+      <span id="top-moon-phase-val" class="value" style="color: #cbd5e1;">—</span>
+    </div>
+  </div>
+</header>

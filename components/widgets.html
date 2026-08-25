@@ -1,0 +1,236 @@
+<!-- Right Floating Navigation Bar (Google Earth Style) -->
+<div class="nav-controls" role="toolbar" aria-label="Controles de navegación 3D">
+  <!-- Compass Widget -->
+  <div class="compass-widget glass-panel" id="compass-btn" title="Hacer clic para orientar al Norte" aria-label="Orientar cámara hacia el Norte">
+    <div class="compass-ring">
+      <div class="compass-needle" id="compass-needle">
+        <span class="north">N</span>
+        <span class="south">S</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btn-group glass-panel">
+    <button id="btn-zoom-in" class="nav-btn" title="Acercar (Zoom In)" aria-label="Acercar cámara"><i class="fa-solid fa-plus"></i></button>
+    <button id="btn-zoom-out" class="nav-btn" title="Alejar (Zoom Out)" aria-label="Alejar cámara"><i class="fa-solid fa-minus"></i></button>
+    <div class="divider"></div>
+    <button id="btn-tilt-up" class="nav-btn" title="Inclinación Arriba" aria-label="Inclinar cámara hacia arriba"><i class="fa-solid fa-angle-up"></i></button>
+    <button id="btn-tilt-down" class="nav-btn" title="Inclinación Abajo" aria-label="Inclinar cámara hacia abajo"><i class="fa-solid fa-angle-down"></i></button>
+    <div class="divider"></div>
+    <button id="btn-view-top" class="nav-btn" title="Vista Cenital (Top View)" aria-label="Cambiar a vista cenital superior"><i class="fa-solid fa-arrows-to-eye"></i></button>
+    <button id="btn-reset-view" class="nav-btn" title="Restablecer Vista Global" aria-label="Restablecer vista inicial"><i class="fa-solid fa-rotate-left"></i></button>
+    <button id="btn-ground-observer" class="nav-btn" title="👁️ Modo Observador en Tierra (Colocar en el mapa y mirar al cielo)" aria-label="Modo Observador en Suelo"><i class="fa-solid fa-person"></i></button>
+    <button id="btn-view-sun" class="nav-btn" title="Seguir al Sol" aria-label="Enfocar y seguir al Sol"><i class="fa-solid fa-sun"></i></button>
+    <button id="btn-view-moon" class="nav-btn" title="Seguir a la Luna" aria-label="Enfocar y seguir a la Luna"><i class="fa-solid fa-moon"></i></button>
+  </div>
+</div>
+
+<!-- Bottom Coordinate & Altitude Bar -->
+<footer class="status-bar glass-panel">
+  <div class="status-item">
+    <i class="fa-solid fa-crosshairs"></i>
+    <span id="cursor-coords">Lat: 0.00°, Lon: 0.00°</span>
+  </div>
+  <div class="status-item">
+    <i class="fa-solid fa-mountain"></i>
+    <span id="altitude-display">Altitud de Cámara: 14,500 km</span>
+  </div>
+  <div class="status-item">
+    <i class="fa-solid fa-map-pin"></i>
+    <span id="feature-hover-info">Sol 24h00m · Luna 24h50m · Ecuación del Tiempo Activa</span>
+  </div>
+  <div class="status-item copyright">
+    <span>Proyección Azimutal Equidistante</span>
+  </div>
+</footer>
+
+<!-- ══ 1. TELESCOPIO LUNAR DE ALTA DEFINICIÓN (Picture-in-Picture) ══ -->
+<div id="moon-telescope-pip" class="glass-panel pip-panel hidden">
+  <div class="pip-header">
+    <div class="pip-title">
+      <i class="fa-solid fa-moon pip-icon"></i>
+      <span>Telescopio Lunar</span>
+    </div>
+    <div class="pip-header-actions">
+      <button id="btn-open-full-observatory" class="pip-btn-action" title="Abrir Observatorio de Bóveda Completa">
+        <i class="fa-solid fa-expand"></i> Observatorio
+      </button>
+      <button id="close-moon-pip" class="btn-icon-close" title="Cerrar Telescopio">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Visor Óptico / Canvas de la Luna -->
+  <div class="pip-viewer">
+    <canvas id="moon-pip-canvas" width="260" height="200" class="pip-canvas"></canvas>
+    <!-- Retícula telescópica -->
+    <div class="pip-reticle pip-reticle-circle"></div>
+    <div class="pip-reticle pip-reticle-v"></div>
+    <div class="pip-reticle pip-reticle-h"></div>
+    <!-- Badge Altura / Azimut -->
+    <div class="pip-badge">
+      <span id="moon-pip-alt-azim">Alt: --° · Az: --°</span>
+    </div>
+  </div>
+
+  <!-- Info del Observador -->
+  <div class="pip-info">
+    <div class="pip-info-row">
+      <span class="pip-info-label">Ubicación:</span>
+      <strong id="moon-pip-coords" class="pip-info-value">0.00°, 0.00°</strong>
+    </div>
+    <div class="pip-info-row">
+      <span class="pip-info-label">Fase / Visibilidad:</span>
+      <strong id="moon-pip-phase" class="pip-phase-val">Creciente Gibosa (84%)</strong>
+    </div>
+    <div id="moon-pip-eclipse-alert" class="pip-eclipse-alert hidden">
+      🔴 ECLIPSE LUNAR EN CURSO
+    </div>
+  </div>
+</div>
+
+<!-- ══ 2. VENTANA COMPLETA DE OBSERVATORIO DEL CIELO NOCTURNO ══ -->
+<div id="observatory-modal-backdrop" class="modal-backdrop hidden">
+  <div class="glass-panel observatory-dialog">
+    <div class="observatory-header">
+      <div class="observatory-title-wrap">
+        <div class="modal-icon-badge">
+          <i class="fa-solid fa-binoculars"></i>
+        </div>
+        <div>
+          <h2 class="modal-title">Observatorio Astronómico Terrestre</h2>
+          <p class="modal-subtitle" id="observatory-subtitle">Bóveda Celeste en Tiempo Real desde las Coordenadas del Observador</p>
+        </div>
+      </div>
+      <div class="observatory-header-actions">
+        <div class="observatory-compass-badge" id="observatory-compass">
+          <i class="fa-solid fa-compass"></i> Mirando al Cielo (Elevación 50°)
+        </div>
+        <button id="close-observatory-modal" class="btn-icon-close" title="Cerrar Observatorio">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Canvas de Observación Gran Angular / Pantalla Completa -->
+    <div class="observatory-viewport-wrap">
+      <canvas id="observatory-canvas" class="observatory-canvas"></canvas>
+      
+      <!-- Overlay de Puntos Cardinales en el Horizonte -->
+      <div class="sky-cardinal sky-cardinal-n">Norte</div>
+      <div class="sky-cardinal sky-cardinal-s">Sur</div>
+      <div class="sky-cardinal sky-cardinal-e">Este</div>
+      <div class="sky-cardinal sky-cardinal-w">Oeste</div>
+      <div class="sky-zenith-marker"><i class="fa-solid fa-plus"></i> Cenit</div>
+      
+      <!-- HUD Flotante dentro del Observatorio -->
+      <div class="observatory-hud glass-panel">
+        <div class="obs-hud-col">
+          <span class="obs-hud-label">Luminarias Visibles:</span>
+          <span id="obs-hud-visible-bodies" class="obs-hud-val">Sol · Luna</span>
+        </div>
+        <div class="obs-hud-col">
+          <span class="obs-hud-label">Bóveda Celeste:</span>
+          <span id="obs-hud-constellations" class="obs-hud-val">Gran Esfera Sideral 360°</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HUD Overlay de Ciudad (estilo Google Earth) ══ -->
+<div id="city-hud" class="city-hud-panel hidden">
+  <div class="city-hud-icon">
+    <i class="fa-solid fa-city"></i>
+  </div>
+  <div style="flex: 1; min-width: 0;">
+    <div id="city-hud-name" class="city-hud-name">Ciudad</div>
+    <div id="city-hud-sub" class="city-hud-sub">País · Coordenadas</div>
+  </div>
+  <button id="close-city-hud" class="btn-icon-close" title="Cerrar">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+</div>
+
+<!-- ══ MODAL DEDICADO DE BÚSQUEDA POR COORDENADAS ══ -->
+<div id="coord-search-modal-backdrop" class="modal-backdrop hidden">
+  <div class="glass-panel modal-dialog">
+    
+    <button id="close-coord-modal" class="btn-icon-close modal-close-btn" title="Cerrar">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <div class="modal-header">
+      <div class="modal-icon-badge">
+        <i class="fa-solid fa-crosshairs"></i>
+      </div>
+      <div>
+        <h2 class="modal-title">Búsqueda por Coordenadas</h2>
+        <p class="modal-subtitle">Latitud y Longitud en Formato Decimal o DMS</p>
+      </div>
+    </div>
+
+    <!-- Pestañas de modo: Decimal vs DMS -->
+    <div class="tab-pill-group">
+      <button id="tab-coord-single" class="tab-pill-btn active">Línea Única / DMS</button>
+      <button id="tab-coord-fields" class="tab-pill-btn">Campos Separados</button>
+    </div>
+
+    <!-- Modo 1: Línea Única (Texto libre o DMS) -->
+    <div id="panel-coord-single">
+      <label class="label-muted label-block">PEGA O ESCRIBE TUS COORDENADAS:</label>
+      <input type="text" id="input-modal-coord-raw" placeholder="Ej: 16° 55' 27&quot; N, 96° 21' 34&quot; O  o  16.9242, -96.3594" class="modal-input modal-input-raw">
+      <div class="modal-hint">
+        <strong>DMS:</strong> <code>16° 55' 27" N, 96° 21' 34" O</code><br>
+        <strong>Decimal:</strong> <code>16.9242, -96.3594</code>
+      </div>
+    </div>
+
+    <!-- Modo 2: Campos Separados (Latitud / Longitud) -->
+    <div id="panel-coord-fields" class="hidden">
+      <div class="coord-fields-stack">
+        <!-- Latitud -->
+        <div>
+          <label class="label-muted label-block">LATITUD (−90° a +90°):</label>
+          <div class="coord-field-row">
+            <input type="number" id="input-modal-lat" step="any" placeholder="16.9242" class="modal-input coord-num-input">
+            <select id="select-modal-lat-hem" class="coord-hem-select coord-hem-narrow">
+              <option value="1">N</option>
+              <option value="-1">S</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Longitud -->
+        <div>
+          <label class="label-muted label-block">LONGITUD (−180° a +180°):</label>
+          <div class="coord-field-row">
+            <input type="number" id="input-modal-lon" step="any" placeholder="96.3594" class="modal-input coord-num-input">
+            <select id="select-modal-lon-hem" class="coord-hem-select">
+              <option value="-1">O / W</option>
+              <option value="1">E</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nombre Opcional para Guardar Marcador -->
+    <div class="modal-name-section">
+      <label class="label-muted label-block">NOMBRE DE MARCADOR (OPCIONAL):</label>
+      <input type="text" id="input-modal-coord-name" placeholder="Ej. Mi Punto de Interés, Base, etc..." class="modal-input">
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="modal-actions">
+      <button id="btn-modal-save-pin" class="btn btn-gold">
+        <i class="fa-solid fa-bookmark"></i> Guardar Marcador
+      </button>
+      <button id="btn-modal-fly-coord" class="btn btn-primary">
+        <i class="fa-solid fa-location-arrow"></i> Volar a Coordenadas
+      </button>
+    </div>
+
+  </div>
+</div>

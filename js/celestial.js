@@ -99,42 +99,59 @@ class CelestialSystem {
 
   /**
    * Detección astronómica exacta de Eclipses (Solares y Lunares) con precisión > 99.9%.
-   * Basado en los límites de eclíptica exactos y posición geocéntrica verdadera.
+   * Basado en el cono de sombra terrestre (Penumbral, Parcial/Umbral y Total).
    */
   getEclipseStatus(tt) {
     const ephem = this.getHighPrecisionEphemeris(tt);
     const elong = ephem.elongDeg;
     const latAbs = Math.abs(ephem.moonLat);
 
-    // --- 1. ECLIPSE LUNAR (Oposición exacta: Luna Llena, elongación ≈ 180° y paso nodal |lat| < 1.6°) ---
+    // --- 1. ECLIPSE LUNAR ---
+    // Diámetro angular del cono de sombra terrestre a la distancia lunar:
+    // - Límite Penumbral: ~1.55° de elongación (~5.5 horas de duración total)
+    // - Límite Umbral (Parcial): ~0.95° de elongación (~3.3 horas de duración parcial)
+    // - Límite Totalidad (Luna de Sangre): ~0.35° de elongación (~1 hora de totalidad)
     const distFrom180 = Math.abs(elong - 180);
-    const isOpposite = distFrom180 <= 3.5;
-    const isLunarNodal = latAbs <= 1.6;
+    const isPenumbralLimit = distFrom180 <= 1.55 && latAbs <= 1.6;
 
     let lunarEclipseFactor = 0;
-    if (isOpposite && isLunarNodal) {
-      const elongFactor = Math.max(0, 1 - distFrom180 / 3.5);
+    let eclipsePhaseType = 'none'; // 'penumbral', 'partial', 'total'
+
+    if (isPenumbralLimit) {
+      const elongFactor = Math.max(0, 1 - distFrom180 / 1.55);
       const latFactor = Math.max(0, 1 - latAbs / 1.6);
       lunarEclipseFactor = elongFactor * latFactor;
+
+      if (distFrom180 <= 0.35 && latAbs <= 0.6) {
+        eclipsePhaseType = 'total';
+      } else if (distFrom180 <= 0.95 && latAbs <= 1.1) {
+        eclipsePhaseType = 'partial';
+      } else {
+        eclipsePhaseType = 'penumbral';
+      }
     }
 
     // --- 2. ECLIPSE SOLAR (Conjunción exacta: Luna Nueva, elongación ≈ 0° y paso nodal |lat| < 1.6°) ---
     const distFrom0 = elong > 180 ? 360 - elong : elong;
-    const isConjunct = distFrom0 <= 3.5;
-    const isSolarNodal = latAbs <= 1.6;
+    const isSolarLimit = distFrom0 <= 1.45 && latAbs <= 1.5;
 
     let solarEclipseFactor = 0;
-    if (isConjunct && isSolarNodal) {
-      const elongFactor = Math.max(0, 1 - distFrom0 / 3.5);
-      const latFactor = Math.max(0, 1 - latAbs / 1.6);
+    let solarPhaseType = 'none';
+
+    if (isSolarLimit) {
+      const elongFactor = Math.max(0, 1 - distFrom0 / 1.45);
+      const latFactor = Math.max(0, 1 - latAbs / 1.5);
       solarEclipseFactor = elongFactor * latFactor;
+      solarPhaseType = distFrom0 <= 0.30 ? 'total' : 'partial';
     }
 
     return {
-      isLunarEclipse: lunarEclipseFactor > 0.05,
+      isLunarEclipse: lunarEclipseFactor > 0.02,
       lunarEclipseFactor,
-      isSolarEclipse: solarEclipseFactor > 0.05,
-      solarEclipseFactor
+      eclipsePhaseType,
+      isSolarEclipse: solarEclipseFactor > 0.02,
+      solarEclipseFactor,
+      solarPhaseType
     };
   }
 
@@ -228,7 +245,7 @@ class CelestialSystem {
     const bloodColor = new THREE.Color(0xc93b2b);
     const currentMoonColor = baseColor.clone().lerp(bloodColor, eclipse.lunarEclipseFactor);
 
-    // Actualizar Uniforms del Shader de Fase Lunar (Iluminación física hacia la posición 3D real del Sol)
+    // Actualizar Uniforms del Shader de Fase Lunar (posición 3D real del Sol en worldspace)
     if (this.moonShaderUniforms) {
       this.moonShaderUniforms.uSunWorldPos.value.set(sunX, yS, sunZ);
       this.moonShaderUniforms.uColor.value.copy(currentMoonColor);
@@ -237,22 +254,19 @@ class CelestialSystem {
       this.moonShaderUniforms.uEclipseFactor.value = eclipse.lunarEclipseFactor;
     }
 
-    // Intensidad fotométrica calibrada del spotlight lunar (luz plateada suave sobre el suelo)
-    const MOON_MAX_INTENSITY = 0.42;
-    const MOON_POINT_MAX     = 0.22;
-
+    // La Luna NO emite luz propia: solo refleja la luz solar.
+    // Spotlight y PointLight se mantienen en 0 para no iluminar el suelo artificialmente.
     if (this.moonSpotlight) {
-      this.moonSpotlight.intensity = MOON_MAX_INTENSITY * reflection;
-      this.moonSpotlight.color.copy(currentMoonColor);
+      this.moonSpotlight.intensity = 0;
     }
     if (this.moonPointLight) {
-      this.moonPointLight.intensity = MOON_POINT_MAX * reflection;
-      this.moonPointLight.color.copy(currentMoonColor);
+      this.moonPointLight.intensity = 0;
     }
 
-    // Ajustar halo visual de la Luna (color y opacidad)
+    // Halo visual de la Luna: muy sutil, solo un pequeño resplandor atmosférico proporcional a la fase
+    // Max opacidad 0.20 (vs 1.0 anterior) para no sobreexponerse en el cielo nocturno
     if (this.moonFlare && this.moonFlare.material) {
-      this.moonFlare.material.opacity = (0.35 + 0.65 * reflection) * (1 - eclipse.lunarEclipseFactor * 0.4);
+      this.moonFlare.material.opacity = 0.20 * reflection * (1 - eclipse.lunarEclipseFactor * 0.6);
       this.moonFlare.material.color.copy(currentMoonColor);
     }
 

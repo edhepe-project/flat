@@ -124,6 +124,31 @@ class UIManager {
       });
     }
 
+    // Botón para abrir el Observatorio de Pantalla Completa desde el Telescopio Lunar
+    const btnOpenObservatory = document.getElementById('btn-open-full-observatory');
+    const observatoryModal   = document.getElementById('observatory-modal-backdrop');
+    const closeObservatory   = document.getElementById('close-observatory-modal');
+
+    if (btnOpenObservatory && observatoryModal) {
+      btnOpenObservatory.addEventListener('click', () => {
+        observatoryModal.classList.remove('hidden');
+        this.app.isObservatoryActive = true;
+        
+        // Actualizar subtítulo con las coordenadas del observador
+        const sub = document.getElementById('observatory-subtitle');
+        if (sub && controls && controls.observerLatLon) {
+          sub.textContent = `Bóveda Celeste en Tiempo Real desde ${controls.observerLatLon.lat.toFixed(2)}°, ${controls.observerLatLon.lon.toFixed(2)}°`;
+        }
+      });
+    }
+
+    if (closeObservatory && observatoryModal) {
+      closeObservatory.addEventListener('click', () => {
+        observatoryModal.classList.add('hidden');
+        this.app.isObservatoryActive = false;
+      });
+    }
+
     document.getElementById('btn-view-sun')?.addEventListener('click', () => {
       const sunPos = celestial.getSunPosition();
       controls.flyTo({ x: sunPos.x, y: sunPos.y + 80, z: sunPos.z + 120, targetX: sunPos.x, targetY: 0, targetZ: sunPos.z, duration: 1500 });
