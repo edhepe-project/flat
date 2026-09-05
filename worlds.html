@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TerraPlana Genesis · Simulador Físico de Ecosistemas y Biomas Reales</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%230b1329' stroke='%2338bdf8' stroke-width='4'/><circle cx='50' cy='50' r='28' fill='none' stroke='%2338bdf8' stroke-dasharray='4,4' stroke-width='2'/><circle cx='50' cy='50' r='12' fill='%2310b981'/></svg>">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Three.js (r128) & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
+  <style>
+    :root {
+      --bg: #040711;
+      --panel-bg: rgba(11, 17, 34, 0.92);
+      --panel-border: rgba(56, 189, 248, 0.25);
+      --primary: #38bdf8;
+      --accent-sun: #f59e0b;
+      --accent-moon: #818cf8;
+      --accent-eco: #10b981;
+      --accent-purple: #c084fc;
+      --gold: #eab308;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      user-select: none;
+    }
+
+    #canvas-container {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 1;
+    }
+
+    /* Top Nav */
+    .top-nav {
+      position: absolute;
+      top: 16px; left: 20px; right: 20px;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .brand-glass {
+      pointer-events: auto;
+      background: var(--panel-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.75);
+    }
+
+    .brand-title h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
+    .brand-title h1 span { color: var(--accent-eco); }
+    .brand-title p {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .top-actions {
+      pointer-events: auto;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-nav {
+      background: var(--panel-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--panel-border);
+      color: var(--text);
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+      text-decoration: none;
+    }
+    .btn-nav:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    }
+
+    /* Panels */
+    .catalog-panel, .controls-panel {
+      position: absolute;
+      top: 85px;
+      width: 360px;
+      max-height: calc(100vh - 110px);
+      z-index: 10;
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.75);
+      overflow-y: auto;
+    }
+    .catalog-panel { left: 20px; }
+    .controls-panel { right: 20px; }
+
+    .catalog-panel::-webkit-scrollbar, .controls-panel::-webkit-scrollbar { width: 5px; }
+    .catalog-panel::-webkit-scrollbar-thumb, .controls-panel::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 4px; }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 10px;
+    }
+    .panel-header h2 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Inspector Tooltip Card */
+    .inspector-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(56, 189, 248, 0.08));
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11.5px;
+    }
+    .inspector-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+    }
+    .inspector-row b { color: #fff; }
+
+    /* Generator Genesis Box */
+    .generator-box {
+      background: linear-gradient(145deg, rgba(16, 185, 129, 0.12), rgba(56, 189, 248, 0.06));
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .gen-control {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .gen-control label {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .gen-select {
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 6px;
+      color: #fff;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-family: 'Outfit', sans-serif;
+    }
+    .gen-select option { background: #0f172a; color: #fff; }
+
+    .btn-generate {
+      background: linear-gradient(135deg, #10b981, #0284c7);
+      border: none;
+      color: #fff;
+      padding: 11px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+    .btn-generate:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(16, 185, 129, 0.6);
+    }
+
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .control-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .control-slider {
+      width: 100%;
+      accent-color: var(--accent-eco);
+    }
+
+    .luminaries-stepper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 6px 12px;
+    }
+    .stepper-btn {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .stepper-btn:hover { background: var(--accent-eco); color: #000; }
+
+    .toggles-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .toggle-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .toggle-btn.active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-eco);
+      color: var(--accent-eco);
+    }
+
+    .mode-btn {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 11px;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-btn.active {
+      background: var(--accent-eco);
+      color: #040711;
+      font-weight: 700;
+    }
+
+    /* HUD Bottom Telemetry */
+    .bottom-hud {
+      position: absolute;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: var(--panel-bg);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--panel-border);
+      border-radius: 30px;
+      padding: 9px 28px;
+      display: flex;
+      gap: 22px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      pointer-events: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .bottom-hud span b { color: var(--accent-eco); }
+
+    /* Modal Ficha Técnica & Guía Cromática */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(4, 7, 17, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .modal-backdrop.show {
+      display: flex;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .world-card-modal {
+      background: #0b1329;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 20px;
+      width: 900px;
+      max-width: 95vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 30px rgba(56, 189, 248, 0.2);
+      overflow: hidden;
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalPop {
+      0% { transform: scale(0.94); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      padding: 18px 24px;
+      background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(56, 189, 248, 0.1));
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 24px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .modal-header h2 span { color: var(--accent-eco); }
+    .modal-close-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .modal-close-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .modal-body::-webkit-scrollbar { width: 6px; }
+    .modal-body::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 4px; }
+    
+    .card-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .meta-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .meta-box span { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+    .meta-box b { font-size: 15px; color: #fff; }
+
+    .color-guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+    }
+    .color-swatch-item {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .color-swatch-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .swatch-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.25);
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .swatch-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .swatch-info .name { font-weight: 600; font-size: 13px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .swatch-info .codes { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--primary); }
+    .swatch-info .desc { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .art-prompt-box {
+      background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(16, 185, 129, 0.05));
+      border: 1px solid rgba(129, 140, 248, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .art-prompt-box h4 {
+      font-size: 13px;
+      color: #818cf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .art-prompt-box p {
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+    .modal-footer {
+      padding: 14px 24px;
+      background: rgba(0,0,0,0.3);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <!-- Header -->
+  <div class="top-nav">
+    <div class="brand-glass">
+      <div class="brand-title">
+        <h1>TerraPlana <span>Genesis Engine</span></h1>
+        <p>SIMULADOR FÍSICO DE CLIMATOLOGÍA, BIOMAS DE WHITTAKER &amp; TECTÓNICA</p>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button id="btn-open-world-card" class="btn-nav" style="background: linear-gradient(135deg, rgba(129, 140, 248, 0.25), rgba(56, 189, 248, 0.15)); border-color: #818cf8; color: #fff;">
+        <i class="fa-solid fa-palette" style="color: #818cf8;"></i> Ficha &amp; Guía de Ilustrador
+      </button>
+      <button id="btn-download-map" class="btn-nav" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(56, 189, 248, 0.15)); border-color: var(--accent-eco); color: #fff;">
+        <i class="fa-solid fa-download" style="color: var(--accent-eco);"></i> Descargar Mapa HD (2048px)
+      </button>
+      <a href="index.html" class="btn-nav">
+        <i class="fa-solid fa-globe"></i> Volver a Tierra Base
+      </a>
+      <a href="orbitas.html" class="btn-nav">
+        <i class="fa-solid fa-arrows-spin"></i> Órbitas 2D
+      </a>
+    </div>
+  </div>
+
+  <!-- Modal Ficha de Mundo & Guía Cromática de Ilustrador -->
+  <div id="world-card-modal" class="modal-backdrop">
+    <div class="world-card-modal">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-id-card"></i> Ficha Técnica del Mundo &amp; <span>Guía de Ilustrador</span></h2>
+        <button id="btn-close-modal" class="modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Metadatos y Parámetros del Mundo Actual -->
+        <div class="card-meta-grid">
+          <div class="meta-box">
+            <span>Identificador / Seed</span>
+            <b id="card-seed">#5542</b>
+          </div>
+          <div class="meta-box">
+            <span>Régimen Solar</span>
+            <b id="card-luminaries">1 Sol (Ámbar) / 1 Luna</b>
+          </div>
+          <div class="meta-box">
+            <span>Distribución Tierra/Agua</span>
+            <b id="card-water">50% Continental / 50% Océano</b>
+          </div>
+          <div class="meta-box">
+            <span>Tectónica &amp; Orogénesis</span>
+            <b id="card-plates">8 Placas Tectónicas Activas</b>
+          </div>
+          <div class="meta-box">
+            <span>Humedad Atmosférica</span>
+            <b id="card-moisture">65% (Clima Templado Húmedo)</b>
+          </div>
+          <div class="meta-box">
+            <span>Erosión Fluvial</span>
+            <b id="card-erosion">Media (3/5)</b>
+          </div>
+        </div>
+
+        <!-- Prompt de Dirección Artística para Ilustradores -->
+        <div class="art-prompt-box">
+          <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Concept Art &amp; Dirección de Arte para el Ilustrador</h4>
+          <p id="card-art-prompt">
+            Cargando especificaciones estéticas...
+          </p>
+        </div>
+
+        <!-- Guía de Colores y Significado de Biomas -->
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-swatchbook" style="color: var(--primary);"></i> Guía Cromática de Biomas &amp; Vegetación (Código HEX / RGB)
+          </div>
+          <div id="color-guide-container" class="color-guide-grid">
+            <!-- Se inyecta dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-download-card-file" class="btn-nav" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(129, 140, 248, 0.15)); border-color: var(--primary); color: #fff;">
+          <i class="fa-solid fa-file-arrow-down" style="color: var(--primary);"></i> Descargar Ficha (.TXT)
+        </button>
+        <button id="btn-copy-card-text" class="btn-nav" style="background: rgba(255,255,255,0.08);">
+          <i class="fa-solid fa-copy"></i> Copiar Guía (Texto)
+        </button>
+        <button id="btn-modal-close" class="btn-generate" style="padding: 9px 20px;">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Left: Genesis Designer & Eco-Inspector -->
+  <div class="catalog-panel">
+    <div class="panel-header">
+      <h2><i class="fa-solid fa-microscope"></i> Sonda Ecológica en Vivo</h2>
+      <span style="font-size: 10px; color: var(--accent-eco);">Cursor Activo</span>
+    </div>
+
+    <!-- Inspector en Tiempo Real -->
+    <div class="inspector-card">
+      <div style="font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; font-size: 13px;">
+        <i class="fa-solid fa-seedling" style="color: var(--accent-eco);"></i> <span id="insp-biome">Selva Lluviosa Tropical</span>
+      </div>
+      <div class="inspector-row"><span>Altitud Topográfica:</span> <b id="insp-alt">420 msnm</b></div>
+      <div class="inspector-row"><span>Temperatura Media:</span> <b id="insp-temp">28.4 °C</b></div>
+      <div class="inspector-row"><span>Precipitación Anual:</span> <b id="insp-rain">2.850 mm/año</b></div>
+      <div class="inspector-row"><span>Flora Dominante:</span> <b id="insp-flora">Dosel Arbóreo &amp; Manglar</b></div>
+    </div>
+
+    <!-- Panel Génesis Físico -->
+    <div class="generator-box">
+      <div style="font-size: 13px; font-weight: 700; color: var(--accent-eco); display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-atom"></i> Parámetros Génesis
+      </div>
+      
+      <div class="gen-control">
+        <label><span>Placas Tectónicas &amp; Relieve</span> <span id="lbl-gen-plates">8 Placas</span></label>
+        <input type="range" class="control-slider" id="gen-plates" min="2" max="16" step="1" value="8">
+      </div>
+
+      <div class="gen-control">
+        <label><span>Nivel de Océano / Agua</span> <span id="lbl-gen-water">50%</span></label>
+        <input type="range" class="control-slider" id="gen-water" min="0.15" max="0.85" step="0.02" value="0.50">
+      </div>
+
+      <div class="gen-control">
+        <label><span>Humedad Atmosférica Global</span> <span id="lbl-gen-moisture">65%</span></label>
+        <input type="range" class="control-slider" id="gen-moisture" min="0.10" max="1.0" step="0.05" value="0.65">
+      </div>
+
+      <div class="gen-control">
+        <label><span>Erosión Fluvial e Hidráulica</span> <span id="lbl-gen-erosion">Media</span></label>
+        <input type="range" class="control-slider" id="gen-erosion" min="1" max="5" step="1" value="3">
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="input-world-name" placeholder="Nombre del Mundo (ej: Hyperborea)" value="Terra Genesis Primus" style="flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; padding: 8px 12px; font-size: 12px; font-family: 'Outfit', sans-serif;">
+        <button id="btn-save-world" class="btn-nav" style="background: rgba(16, 185, 129, 0.2); border-color: var(--accent-eco); color: var(--accent-eco); padding: 8px 14px; font-size: 12px;">
+          <i class="fa-solid fa-floppy-disk"></i> Guardar
+        </button>
+      </div>
+
+      <button class="btn-generate" id="btn-proc-generate">
+        <i class="fa-solid fa-dna"></i> Sintetizar Nuevo Mundo
+      </button>
+    </div>
+
+    <!-- Biblioteca de Mundos Guardados -->
+    <div class="saved-worlds-box" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 11.5px; font-weight: 700; color: var(--primary); text-transform: uppercase; font-family: 'JetBrains Mono', monospace; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-bookmark"></i> Mundos Guardados (<span id="saved-count">0</span>)
+        </span>
+        <button id="btn-export-worlds-json" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px;" title="Exportar Copia de Seguridad JSON">
+          <i class="fa-solid fa-file-export"></i> JSON
+        </button>
+      </div>
+      <div id="saved-worlds-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto;">
+        <!-- Inyectado dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Astrophysics, Visual Modes & Orbit -->
+  <div class="controls-panel">
+    <div class="panel-header">
+      <h2><i class="fa-solid fa-layer-group"></i> Modos de Visualización</h2>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+      <button class="mode-btn active" id="btn-mode-natural">Biomas Naturales</button>
+      <button class="mode-btn" id="btn-mode-thermal">Mapa Térmico (°C)</button>
+      <button class="mode-btn" id="btn-mode-moisture">Precipitación (mm)</button>
+      <button class="mode-btn" id="btn-mode-dem">Elevación DEM</button>
+    </div>
+
+    <div class="panel-header" style="margin-top: 6px;">
+      <h2><i class="fa-solid fa-sun"></i> Astrofísica de Luminarias</h2>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span style="color: var(--accent-sun); font-weight: 600;"><i class="fa-solid fa-sun"></i> Número de Soles</span>
+        <span id="lbl-suns-count">1 Sol</span>
+      </div>
+      <div class="luminaries-stepper">
+        <button class="stepper-btn" id="btn-sub-sun">-</button>
+        <span id="val-suns-count" style="font-weight: 700; color: #fff; font-size: 15px;">1</span>
+        <button class="stepper-btn" id="btn-add-sun">+</button>
+      </div>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span style="color: var(--accent-moon); font-weight: 600;"><i class="fa-solid fa-moon"></i> Número de Lunas</span>
+        <span id="lbl-moons-count">1 Luna</span>
+      </div>
+      <div class="luminaries-stepper">
+        <button class="stepper-btn" id="btn-sub-moon">-</button>
+        <span id="val-moons-count" style="font-weight: 700; color: #fff; font-size: 15px;">1</span>
+        <button class="stepper-btn" id="btn-add-moon">+</button>
+      </div>
+    </div>
+
+    <div class="panel-header" style="margin-top: 6px;">
+      <h2><i class="fa-solid fa-sliders"></i> Órbita &amp; Dinámica</h2>
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>Velocidad Órbita</span>
+        <span id="lbl-speed">1.0x</span>
+      </div>
+      <input type="range" class="control-slider" id="slider-speed" min="0" max="5" step="0.1" value="1">
+    </div>
+
+    <div class="control-row">
+      <div class="control-label">
+        <span>Altura Luminarias</span>
+        <span id="lbl-sun-height">140</span>
+      </div>
+      <input type="range" class="control-slider" id="slider-sun-height" min="50" max="300" step="5" value="140">
+    </div>
+
+    <div class="toggles-grid">
+      <button class="toggle-btn active" id="btn-toggle-rivers">
+        <i class="fa-solid fa-water"></i> Cuencas Fluviales
+      </button>
+      <button class="toggle-btn active" id="btn-toggle-mountains">
+        <i class="fa-solid fa-mountain"></i> Cordilleras
+      </button>
+      <button class="toggle-btn active" id="btn-toggle-grid">
+        <i class="fa-solid fa-compass"></i> Grilla Coordenadas
+      </button>
+      <button class="toggle-btn active" id="btn-toggle-icewall">
+        <i class="fa-solid fa-icicles"></i> Muro Hielo
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Telemetry HUD -->
+  <div class="bottom-hud">
+    <span>MUNDO: <b id="hud-world-name">Terra Genesis Primus</b></span>
+    <span>BIOMAS EN SIMULACIÓN: <b>16 Ecosistemas Whittaker</b></span>
+    <span>LUMINARIAS: <b id="hud-luminaries" style="color: var(--accent-sun);">1 Sol / 1 Luna</b></span>
+    <span>RESOLUCIÓN: <b>2048×2048 Físico</b></span>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * TERRA PLANA GENESIS ENGINE - SIMULADOR FÍSICO DE ECOSISTEMAS
+     * Modelado de 16 Biomas de Whittaker, insolación celular, sombras pluviales,
+     * cuencas hidrográficas y sonda ecológica en tiempo real.
+     * =========================================================================
+     */
+
+    // --- Definición Científica de los 16 Biomas Reales ---
+    const BIOMES = {
+      TROPICAL_RAINFOREST: { name: 'Selva Lluviosa Tropical', color: [16, 95, 38], flora: 'Dosel Denso, Lianas & Manglares' },
+      TROPICAL_DRY_FOREST: { name: 'Bosque Tropical Seco', color: [65, 142, 55], flora: 'Árboles Caducifolios & Matorrales' },
+      SAVANNA: { name: 'Sabana Árida & Cañones', color: [195, 155, 55], flora: 'Gramíneas Altas & Acacias' },
+      DESERT: { name: 'Desierto de Dunas de Salitre', color: [235, 192, 105], flora: 'Cactus, Xerófitas & Dunas' },
+      TEMPERATE_RAINFOREST: { name: 'Bosque Nuboso Templado', color: [28, 125, 75], flora: 'Helechos Gigantes & Musgos' },
+      TEMPERATE_FOREST: { name: 'Bosque Mixto Templado', color: [45, 155, 58], flora: 'Robles, Encinas & Hayas' },
+      GRASSLAND: { name: 'Praderas & Estepas', color: [142, 185, 75], flora: 'Pastizales Vivos & Matorral' },
+      CHAPARRAL: { name: 'Chaparral / Matorral Seco', color: [168, 138, 70], flora: 'Arbustos Espinosos & Olivos' },
+      BOREAL_FOREST: { name: 'Bosque Boreal / Taiga', color: [22, 85, 72], flora: 'Pinos, Abetos & Alerces' },
+      BOG: { name: 'Turberas & Humedales Fríos', color: [48, 105, 95], flora: 'Musgo Sphagnum & Juncos' },
+      ALPINE_TUNDRA: { name: 'Páramo & Tundra Alpina', color: [120, 135, 125], flora: 'Líquenes de Roca & Gramíneas Bajas' },
+      GLACIER: { name: 'Glaciares Alpinos', color: [225, 240, 255], flora: 'Nieve Eterna & Hielo Puro' },
+      PERMAFROST_TUNDRA: { name: 'Tundra Permafrost', color: [155, 175, 185], flora: 'Suelo Helado & Arbustos Enanos' },
+      POLAR_DESERT: { name: 'Desierto Polar de Roca', color: [165, 155, 145], flora: 'Roca Desnuda & Viento Polar' },
+      SEA_ICE: { name: 'Banquisa Ártica', color: [240, 248, 255], flora: 'Hielo Marino & Microalgas Árticas' },
+      OCEAN_DEEP: { name: 'Fosa Oceánica Abisal', color: [8, 32, 75], flora: 'Plancton Pelágico Profundo' },
+      OCEAN_COAST: { name: 'Aguas Costeras / Arrecife', color: [22, 125, 175], flora: 'Arrecifes Coralinos & Algas' }
+    };
+
+    // Estado Génesis
+    let genesisConfig = {
+      seed: 5542,
+      plates: 8,
+      waterLevel: 0.50,
+      globalMoisture: 0.65,
+      erosion: 3,
+      scale: 4.5
+    };
+
+    let numSuns = 1;
+    let numMoons = 1;
+    let simSpeed = 1.0;
+    let time = 0;
+    let currentRenderMode = 'natural'; // natural, thermal, moisture, dem
+
+    // Capas activas
+    let layers = { rivers: true, mountains: true, grid: true };
+
+    // Buffers Físicos de Simulación (2048x2048)
+    const SIM_SIZE = 2048;
+    let heightGrid = new Float32Array(SIM_SIZE * SIM_SIZE);
+    let tempGrid = new Float32Array(SIM_SIZE * SIM_SIZE);
+    let moistureGrid = new Float32Array(SIM_SIZE * SIM_SIZE);
+    let biomeGrid = new Uint8Array(SIM_SIZE * SIM_SIZE);
+    let biomeList = Object.keys(BIOMES);
+
+    // Three.js Core
+    let scene, camera, renderer, controls;
+    let worldDiscMesh, iceWallMesh, starField;
+    let sunsGroup, moonsGroup, trailsGroup;
+    let customCanvasTexture = null;
+
+    // --- Generador de Ruido Simplex/Fractal ---
+    class FastNoise {
+      constructor(seed = 1234) { this.seed = seed; }
+      hash(x, y) {
+        const n = Math.sin(x * 12.9898 + y * 78.233 + this.seed) * 43758.5453123;
+        return n - Math.floor(n);
+      }
+      smooth(x, y) {
+        const i = Math.floor(x), j = Math.floor(y);
+        const fx = x - i, fy = y - j;
+        const ux = fx * fx * (3.0 - 2.0 * fx);
+        const uy = fy * fy * (3.0 - 2.0 * fy);
+        const a = this.hash(i, j), b = this.hash(i + 1, j);
+        const c = this.hash(i, j + 1), d = this.hash(i + 1, j + 1);
+        return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+      }
+      fractal(x, y, octaves = 6) {
+        let val = 0, amp = 0.5, freq = 1.0;
+        for (let o = 0; o < octaves; o++) {
+          val += amp * this.smooth(x * freq, y * freq);
+          amp *= 0.5;
+          freq *= 2.0;
+        }
+        return val;
+      }
+    }
+
+    // --- SIMULACIÓN FÍSICA CLIMÁTICA COMPLETA ---
+    function runPhysicalClimateSimulation() {
+      const noise = new FastNoise(genesisConfig.seed);
+      const tectNoise = new FastNoise(genesisConfig.seed + 101);
+      const windNoise = new FastNoise(genesisConfig.seed + 808);
+
+      const cx = SIM_SIZE / 2, cy = SIM_SIZE / 2;
+      const maxR = SIM_SIZE * 0.485;
+
+      const solarRadiation = Math.max(0.2, numSuns * 1.0 - numMoons * 0.35);
+
+      // Paso 1: Tectónica de Placas y Elevación DEM
+      for (let y = 0; y < SIM_SIZE; y++) {
+        for (let x = 0; x < SIM_SIZE; x++) {
+          const idx = y * SIM_SIZE + x;
+          const dx = x - cx;
+          const dy = y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist > maxR) {
+            heightGrid[idx] = 1.0;
+            continue;
+          }
+
+          const nx = (x / SIM_SIZE) * genesisConfig.scale;
+          const ny = (y / SIM_SIZE) * genesisConfig.scale;
+
+          let h = noise.fractal(nx, ny, 6);
+          // Orogénesis de choque tectónico
+          const tect = tectNoise.fractal(nx * (genesisConfig.plates / 4), ny * (genesisConfig.plates / 4), 3);
+          if (tect > 0.65) h += Math.pow((tect - 0.65) * 3.0, 2.0) * 0.4;
+
+          // Casquete Ártico Central
+          const poleDist = dist / maxR;
+          if (poleDist < 0.12) h += (1 - poleDist / 0.12) * 0.35;
+
+          heightGrid[idx] = h;
+        }
+      }
+
+      // Paso 2: Radiación Solar Acumulada, Temperatura y Altitud
+      for (let y = 0; y < SIM_SIZE; y++) {
+        for (let x = 0; x < SIM_SIZE; x++) {
+          const idx = y * SIM_SIZE + x;
+          const dx = x - cx, dy = y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const normDist = dist / maxR;
+
+          const h = heightGrid[idx];
+          const isLand = h >= genesisConfig.waterLevel;
+          const elev = isLand ? (h - genesisConfig.waterLevel) / (1 - genesisConfig.waterLevel) : 0;
+
+          // Insolación según distancia al trópico del sol (rango medio caliente, polo y periferia fría)
+          const solarTropicDist = Math.abs(normDist - 0.45);
+          let baseTemp = (1.0 - solarTropicDist * 1.6) * solarRadiation;
+
+          // Gradiente adiabático térmico (a más altura, menor temperatura: -6.5°C por km)
+          baseTemp -= elev * 0.75;
+          tempGrid[idx] = Math.max(-0.4, Math.min(1.4, baseTemp));
+        }
+      }
+
+      // Paso 3: Celdas de Viento, Humedad y Sombra Pluvial (Rain Shadow)
+      for (let y = 0; y < SIM_SIZE; y++) {
+        for (let x = 0; x < SIM_SIZE; x++) {
+          const idx = y * SIM_SIZE + x;
+          const dx = x - cx, dy = y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          const nx = (x / SIM_SIZE) * 3.5;
+          const ny = (y / SIM_SIZE) * 3.5;
+          const baseMoist = windNoise.fractal(nx, ny, 4) * genesisConfig.globalMoisture;
+
+          const h = heightGrid[idx];
+          const isLand = h >= genesisConfig.waterLevel;
+
+          let moist = isLand ? baseMoist * 0.85 : 1.0;
+
+          // Efecto Sombra de Lluvia: las altas cordilleras bloquean la humedad
+          if (isLand) {
+            const elev = (h - genesisConfig.waterLevel) / (1 - genesisConfig.waterLevel);
+            if (elev > 0.5) moist -= (elev - 0.5) * 0.8;
+          }
+
+          moistureGrid[idx] = Math.max(0, Math.min(1.0, moist));
+        }
+      }
+
+      // Paso 4: Matriz de Whittaker para Asignación de Biomas
+      for (let i = 0; i < SIM_SIZE * SIM_SIZE; i++) {
+        const h = heightGrid[i];
+        const temp = tempGrid[i];
+        const moist = moistureGrid[i];
+        const isLand = h >= genesisConfig.waterLevel;
+
+        if (!isLand) {
+          biomeGrid[i] = (h / genesisConfig.waterLevel > 0.75) ? biomeList.indexOf('OCEAN_COAST') : biomeList.indexOf('OCEAN_DEEP');
+          continue;
+        }
+
+        const elev = (h - genesisConfig.waterLevel) / (1 - genesisConfig.waterLevel);
+
+        if (elev > 0.88 || temp < -0.15) {
+          biomeGrid[i] = (elev > 0.94) ? biomeList.indexOf('GLACIER') : biomeList.indexOf('ALPINE_TUNDRA');
+        } else if (temp > 0.85) {
+          // Zona Tropical / Cálida Extrema
+          if (moist > 0.65) biomeGrid[i] = biomeList.indexOf('TROPICAL_RAINFOREST');
+          else if (moist > 0.40) biomeGrid[i] = biomeList.indexOf('TROPICAL_DRY_FOREST');
+          else if (moist > 0.20) biomeGrid[i] = biomeList.indexOf('SAVANNA');
+          else biomeGrid[i] = biomeList.indexOf('DESERT');
+        } else if (temp > 0.35) {
+          // Zona Templada
+          if (moist > 0.70) biomeGrid[i] = biomeList.indexOf('TEMPERATE_RAINFOREST');
+          else if (moist > 0.45) biomeGrid[i] = biomeList.indexOf('TEMPERATE_FOREST');
+          else if (moist > 0.25) biomeGrid[i] = biomeList.indexOf('GRASSLAND');
+          else biomeGrid[i] = biomeList.indexOf('CHAPARRAL');
+        } else {
+          // Zona Boreal / Subpolar
+          if (moist > 0.60) biomeGrid[i] = biomeList.indexOf('BOG');
+          else if (moist > 0.35) biomeGrid[i] = biomeList.indexOf('BOREAL_FOREST');
+          else if (moist > 0.15) biomeGrid[i] = biomeList.indexOf('PERMAFROST_TUNDRA');
+          else biomeGrid[i] = biomeList.indexOf('POLAR_DESERT');
+        }
+      }
+    }
+
+    // --- Renderizado de Canvas según Modo de Visualización ---
+    function renderWorldTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = SIM_SIZE;
+      const ctx = canvas.getContext('2d');
+      const img = ctx.createImageData(SIM_SIZE, SIM_SIZE);
+      const d = img.data;
+
+      const cx = SIM_SIZE / 2, cy = SIM_SIZE / 2;
+      const maxR = SIM_SIZE * 0.485;
+
+      for (let y = 0; y < SIM_SIZE; y++) {
+        for (let x = 0; x < SIM_SIZE; x++) {
+          const idx = (y * SIM_SIZE + x) * 4;
+          const mapIdx = y * SIM_SIZE + x;
+          const dx = x - cx, dy = y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist > maxR) {
+            d[idx] = 230; d[idx+1] = 245; d[idx+2] = 255; d[idx+3] = 255;
+            continue;
+          }
+
+          if (currentRenderMode === 'thermal') {
+            // Mapa Térmico (°C)
+            const t = Math.max(0, Math.min(1, (tempGrid[mapIdx] + 0.3) / 1.5));
+            d[idx]   = Math.floor(t > 0.5 ? 255 : t * 2 * 255);
+            d[idx+1] = Math.floor(t > 0.5 ? (1 - (t - 0.5) * 2) * 255 : t * 2 * 255);
+            d[idx+2] = Math.floor(t < 0.5 ? (1 - t * 2) * 255 : 0);
+            d[idx+3] = 255;
+          } else if (currentRenderMode === 'moisture') {
+            // Mapa de Precipitación y Humedad
+            const m = moistureGrid[mapIdx];
+            d[idx]   = Math.floor((1 - m) * 230);
+            d[idx+1] = Math.floor(120 + m * 120);
+            d[idx+2] = Math.floor(180 + m * 75);
+            d[idx+3] = 255;
+          } else if (currentRenderMode === 'dem') {
+            // Mapa de Elevación Escala de Grises (DEM)
+            const val = Math.floor(heightGrid[mapIdx] * 255);
+            d[idx] = d[idx+1] = d[idx+2] = val;
+            d[idx+3] = 255;
+          } else {
+            // Vista Natural de Biomas de Whittaker
+            const bKey = biomeList[biomeGrid[mapIdx]];
+            const bDef = BIOMES[bKey] || BIOMES.GRASSLAND;
+            d[idx]   = bDef.color[0];
+            d[idx+1] = bDef.color[1];
+            d[idx+2] = bDef.color[2];
+            d[idx+3] = 255;
+          }
+        }
+      }
+
+      ctx.putImageData(img, 0, 0);
+
+      // Dibujar Cordilleras Vectoriales si están activas
+      if (layers.mountains && currentRenderMode === 'natural') {
+        ctx.strokeStyle = '#1a1714';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.lineWidth = 1.6;
+
+        const step = 24;
+        for (let y = step; y < SIM_SIZE - step; y += step) {
+          for (let x = step; x < SIM_SIZE - step; x += step) {
+            const mapIdx = y * SIM_SIZE + x;
+            const h = heightGrid[mapIdx];
+            if (h >= genesisConfig.waterLevel) {
+              const elev = (h - genesisConfig.waterLevel) / (1 - genesisConfig.waterLevel);
+              if (elev > 0.52) {
+                const mH = 12 + elev * 22;
+                ctx.beginPath();
+                ctx.moveTo(x - 12, y + 8);
+                ctx.lineTo(x, y - mH);
+                ctx.lineTo(x + 12, y + 8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(x, y - mH);
+                ctx.lineTo(x, y + 8);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+      }
+
+      // Dibujar Cuencas Fluviales si están activas
+      if (layers.rivers && currentRenderMode === 'natural') {
+        const riverNoise = new FastNoise(genesisConfig.seed + 333);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineCap = 'round';
+
+        for (let r = 0; r < 28; r++) {
+          const angle = (r / 28) * Math.PI * 2 + (genesisConfig.seed % 100);
+          const startR = maxR * (0.22 + (r % 6) * 0.11);
+          let rx = cx + Math.cos(angle) * startR;
+          let ry = cy + Math.sin(angle) * startR;
+
+          ctx.lineWidth = 3.2;
+          ctx.beginPath();
+          ctx.moveTo(rx, ry);
+
+          let flowing = true;
+          let steps = 0;
+          while (flowing && steps < 65) {
+            steps++;
+            const nx = (rx / SIM_SIZE) * 4;
+            const ny = (ry / SIM_SIZE) * 4;
+            const flowAngle = riverNoise.fractal(nx, ny, 3) * Math.PI * 4;
+
+            rx += Math.cos(flowAngle) * 12;
+            ry += Math.sin(flowAngle) * 12;
+
+            if (rx < 0 || rx >= SIM_SIZE || ry < 0 || ry >= SIM_SIZE) break;
+
+            const mapIdx = Math.floor(ry) * SIM_SIZE + Math.floor(rx);
+            if (heightGrid[mapIdx] < genesisConfig.waterLevel) flowing = false;
+
+            ctx.lineTo(rx, ry);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // Rosa de los Vientos y Grilla
+      if (layers.grid) {
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+        ctx.lineWidth = 1.2;
+
+        for (let deg = 0; deg < 360; deg += 30) {
+          const rad = (deg * Math.PI) / 180;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(rad) * maxR, cy + Math.sin(rad) * maxR);
+          ctx.stroke();
+        }
+
+        [0.25, 0.5, 0.75, 0.98].forEach(ratio => {
+          ctx.beginPath();
+          ctx.arc(cx, cy, maxR * ratio, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+
+        const roseR = 40;
+        ctx.fillStyle = '#eab308';
+        ctx.strokeStyle = '#050914';
+        ctx.lineWidth = 2.0;
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4;
+          const len = (i % 2 === 0) ? roseR : roseR * 0.55;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(a + 0.15) * (len * 0.3), cy + Math.sin(a + 0.15) * (len * 0.3));
+          ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+
+      currentWorldCanvas = canvas;
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+      tex.anisotropy = 16;
+      tex.generateMipmaps = true;
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    // --- Inicialización Three.js ---
+    function initScene() {
+      const container = document.getElementById('canvas-container');
+      
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x040711);
+      scene.fog = new THREE.FogExp2(0x040711, 0.00035);
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+      camera.position.set(0, 560, 720);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.35;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.02;
+      controls.minDistance = 50;
+      controls.maxDistance = 2500;
+      controls.target.set(0, 0, 0);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
+
+      sunsGroup = new THREE.Group();
+      moonsGroup = new THREE.Group();
+      trailsGroup = new THREE.Group();
+      scene.add(sunsGroup);
+      scene.add(moonsGroup);
+      scene.add(trailsGroup);
+
+      createStars();
+      createDiscMesh();
+
+      runSimulationAndApply();
+
+      // Sonda Ecológica por Raycast
+      setupRaycastInspector(renderer.domElement);
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function createStars() {
+      const count = 3500;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const colors = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const u = Math.random(), v = Math.random();
+        const theta = u * 2.0 * Math.PI, phi = Math.acos(2.0 * v - 1.0), r = 2600;
+        pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        pos[i * 3 + 1] = Math.abs(r * Math.cos(phi));
+        pos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+        colors[i * 3] = 0.85 + Math.random() * 0.15;
+        colors[i * 3 + 1] = 0.9 + Math.random() * 0.1;
+        colors[i * 3 + 2] = 1.0;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      starField = new THREE.Points(geo, new THREE.PointsMaterial({ size: 2.2, vertexColors: true, transparent: true, opacity: 0.85 }));
+      scene.add(starField);
+    }
+
+    function createDiscMesh() {
+      const radius = 500;
+      const thickness = 14;
+
+      const discGeo = new THREE.CylinderGeometry(radius, radius, thickness, 128, 1);
+      const uvs = discGeo.attributes.uv;
+      const pos = discGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i);
+        if (y > 0) {
+          const x = pos.getX(i);
+          const z = pos.getZ(i);
+          uvs.setXY(i, 0.5 + (x / (radius * 2)), 0.5 + (z / (radius * 2)));
+        }
+      }
+      uvs.needsUpdate = true;
+
+      const discMat = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0.05 });
+      worldDiscMesh = new THREE.Mesh(discGeo, discMat);
+      worldDiscMesh.position.y = -thickness / 2;
+      scene.add(worldDiscMesh);
+
+      const wallGeo = new THREE.TorusGeometry(496, 8, 16, 100);
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xcee7fe, roughness: 0.2, metalness: 0.3 });
+      iceWallMesh = new THREE.Mesh(wallGeo, wallMat);
+      iceWallMesh.rotation.x = Math.PI / 2;
+      iceWallMesh.position.y = 4;
+      scene.add(iceWallMesh);
+    }
+
+    function rebuildLuminaries() {
+      while (sunsGroup.children.length > 0) sunsGroup.remove(sunsGroup.children[0]);
+      while (moonsGroup.children.length > 0) moonsGroup.remove(moonsGroup.children[0]);
+      while (trailsGroup.children.length > 0) trailsGroup.remove(trailsGroup.children[0]);
+
+      for (let i = 0; i < numSuns; i++) {
+        const sun = new THREE.Group();
+        const mesh = new THREE.Mesh(new THREE.SphereGeometry(12, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffe680 }));
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(22, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.35, wireframe: true }));
+        const light = new THREE.PointLight(0xffe680, 2.2 / Math.sqrt(numSuns), 1400, 1.1);
+
+        sun.add(mesh); sun.add(glow); sun.add(light);
+        sun.userData = { orbitRadius: 220 + i * 45, speedOffset: 0.5 + i * 0.15, phaseOffset: (i * (Math.PI * 2)) / numSuns };
+        sunsGroup.add(sun);
+
+        const points = new THREE.EllipseCurve(0, 0, sun.userData.orbitRadius, sun.userData.orbitRadius, 0, 2 * Math.PI).getPoints(64);
+        const trailMesh = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points.map(p => new THREE.Vector3(p.x, 0, p.y))), new THREE.LineBasicMaterial({ color: 0xffe680, transparent: true, opacity: 0.25 }));
+        trailMesh.position.y = 140;
+        trailsGroup.add(trailMesh);
+      }
+
+      for (let j = 0; j < numMoons; j++) {
+        const moon = new THREE.Group();
+        const mesh = new THREE.Mesh(new THREE.SphereGeometry(8, 24, 24), new THREE.MeshBasicMaterial({ color: 0xc8e2ff }));
+        const light = new THREE.PointLight(0xc8e2ff, 0.7 / Math.sqrt(numMoons), 900, 1.4);
+
+        moon.add(mesh); moon.add(light);
+        moon.userData = { orbitRadius: 240 + j * 35, speedOffset: 0.48 + j * 0.12, phaseOffset: (j * (Math.PI * 2)) / numMoons + Math.PI };
+        moonsGroup.add(moon);
+
+        const points = new THREE.EllipseCurve(0, 0, moon.userData.orbitRadius, moon.userData.orbitRadius, 0, 2 * Math.PI).getPoints(64);
+        const trailMesh = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points.map(p => new THREE.Vector3(p.x, 0, p.y))), new THREE.LineBasicMaterial({ color: 0xc8e2ff, transparent: true, opacity: 0.2 }));
+        trailMesh.position.y = 125;
+        trailsGroup.add(trailMesh);
+      }
+
+      document.getElementById('hud-luminaries').textContent = `${numSuns} ${numSuns===1?'Sol':'Soles'} / ${numMoons} ${numMoons===1?'Luna':'Lunas'}`;
+      document.getElementById('val-suns-count').textContent = numSuns;
+      document.getElementById('val-moons-count').textContent = numMoons;
+      document.getElementById('lbl-suns-count').textContent = numSuns === 1 ? '1 Sol' : `${numSuns} Soles`;
+      document.getElementById('lbl-moons-count').textContent = numMoons === 1 ? '1 Luna' : `${numMoons} Lunas`;
+    }
+
+    function runSimulationAndApply() {
+      runPhysicalClimateSimulation();
+      rebuildLuminaries();
+
+      if (worldDiscMesh) {
+        if (customCanvasTexture) customCanvasTexture.dispose();
+        customCanvasTexture = renderWorldTexture();
+        worldDiscMesh.material.map = customCanvasTexture;
+        worldDiscMesh.material.needsUpdate = true;
+      }
+    }
+
+    // --- Sonda Ecológica en Tiempo Real con Raycasting ---
+    function setupRaycastInspector(domElement) {
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+
+      domElement.addEventListener('mousemove', (ev) => {
+        const rect = domElement.getBoundingClientRect();
+        mouse.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObject(worldDiscMesh);
+
+        if (intersects.length > 0 && intersects[0].uv) {
+          const uv = intersects[0].uv;
+          const px = Math.floor(uv.x * SIM_SIZE);
+          const py = Math.floor(uv.y * SIM_SIZE);
+
+          if (px >= 0 && px < SIM_SIZE && py >= 0 && py < SIM_SIZE) {
+            const idx = py * SIM_SIZE + px;
+            const bKey = biomeList[biomeGrid[idx]];
+            const bDef = BIOMES[bKey] || BIOMES.GRASSLAND;
+
+            const h = heightGrid[idx];
+            const isLand = h >= genesisConfig.waterLevel;
+            const altMeters = isLand ? Math.round(((h - genesisConfig.waterLevel) / (1 - genesisConfig.waterLevel)) * 4800) : Math.round((h / genesisConfig.waterLevel - 1) * 3500);
+            const tempC = (tempGrid[idx] * 32).toFixed(1);
+            const rainMm = Math.round(moistureGrid[idx] * 3800);
+
+            document.getElementById('insp-biome').textContent = bDef.name;
+            document.getElementById('insp-alt').textContent = `${altMeters} msnm`;
+            document.getElementById('insp-temp').textContent = `${tempC} °C`;
+            document.getElementById('insp-rain').textContent = `${rainMm} mm/año`;
+            document.getElementById('insp-flora').textContent = bDef.flora;
+          }
+        }
+      });
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      TWEEN.update();
+
+      const dt = 0.016 * simSpeed;
+      time += dt;
+
+      if (starField) starField.rotation.y = time * 0.012;
+
+      const baseHeight = parseFloat(document.getElementById('slider-sun-height').value);
+
+      sunsGroup.children.forEach((sun, idx) => {
+        const cfg = sun.userData;
+        const angle = time * cfg.speedOffset + cfg.phaseOffset;
+        const radius = cfg.orbitRadius + Math.sin(time * 0.25 + idx) * 35;
+        sun.position.set(Math.cos(angle) * radius, baseHeight + Math.sin(time * 0.5 + idx) * 10, Math.sin(angle) * radius);
+      });
+
+      moonsGroup.children.forEach((moon, idx) => {
+        const cfg = moon.userData;
+        const angle = time * cfg.speedOffset + cfg.phaseOffset;
+        const radius = cfg.orbitRadius - Math.sin(time * 0.25 + idx) * 25;
+        moon.position.set(Math.cos(angle) * radius, baseHeight * 0.9 + Math.cos(time * 0.5 + idx) * 8, Math.sin(angle) * radius);
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Sliders Génesis
+    document.getElementById('gen-plates').oninput = (e) => {
+      genesisConfig.plates = parseInt(e.target.value);
+      document.getElementById('lbl-gen-plates').textContent = `${genesisConfig.plates} Placas`;
+    };
+    document.getElementById('gen-water').oninput = (e) => {
+      genesisConfig.waterLevel = parseFloat(e.target.value);
+      document.getElementById('lbl-gen-water').textContent = Math.round(genesisConfig.waterLevel * 100) + '%';
+    };
+    document.getElementById('gen-moisture').oninput = (e) => {
+      genesisConfig.globalMoisture = parseFloat(e.target.value);
+      document.getElementById('lbl-gen-moisture').textContent = Math.round(genesisConfig.globalMoisture * 100) + '%';
+    };
+    document.getElementById('gen-erosion').oninput = (e) => {
+      genesisConfig.erosion = parseInt(e.target.value);
+      const desc = ['Baja', 'Moderada', 'Media', 'Alta', 'Fluvial Extrema'];
+      document.getElementById('lbl-gen-erosion').textContent = desc[genesisConfig.erosion - 1];
+    };
+
+    document.getElementById('btn-proc-generate').onclick = () => {
+      genesisConfig.seed = Math.floor(Math.random() * 999999);
+      runSimulationAndApply();
+    };
+
+    // Botones de Modo de Visualización
+    ['natural', 'thermal', 'moisture', 'dem'].forEach(mode => {
+      const btn = document.getElementById(`btn-mode-${mode}`);
+      btn.onclick = () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentRenderMode = mode;
+        if (worldDiscMesh) {
+          if (customCanvasTexture) customCanvasTexture.dispose();
+          customCanvasTexture = renderWorldTexture();
+          worldDiscMesh.material.map = customCanvasTexture;
+          worldDiscMesh.material.needsUpdate = true;
+        }
+      };
+    });
+
+    document.getElementById('slider-speed').oninput = (e) => {
+      simSpeed = parseFloat(e.target.value);
+      document.getElementById('lbl-speed').textContent = simSpeed.toFixed(1) + 'x';
+    };
+    document.getElementById('slider-sun-height').oninput = (e) => {
+      document.getElementById('lbl-sun-height').textContent = e.target.value;
+    };
+
+    document.getElementById('btn-add-sun').onclick = () => {
+      if (numSuns < 4) { numSuns++; runSimulationAndApply(); }
+    };
+    document.getElementById('btn-sub-sun').onclick = () => {
+      if (numSuns > 0) { numSuns--; runSimulationAndApply(); }
+    };
+    document.getElementById('btn-add-moon').onclick = () => {
+      if (numMoons < 4) { numMoons++; runSimulationAndApply(); }
+    };
+    document.getElementById('btn-sub-moon').onclick = () => {
+      if (numMoons > 0) { numMoons--; runSimulationAndApply(); }
+    };
+
+    function setupLayerToggle(btnId, layerKey) {
+      const btn = document.getElementById(btnId);
+      btn.onclick = () => {
+        layers[layerKey] = !layers[layerKey];
+        btn.classList.toggle('active', layers[layerKey]);
+        if (worldDiscMesh) {
+          if (customCanvasTexture) customCanvasTexture.dispose();
+          customCanvasTexture = renderWorldTexture();
+          worldDiscMesh.material.map = customCanvasTexture;
+          worldDiscMesh.material.needsUpdate = true;
+        }
+      };
+    }
+
+    setupLayerToggle('btn-toggle-rivers', 'rivers');
+    setupLayerToggle('btn-toggle-mountains', 'mountains');
+    setupLayerToggle('btn-toggle-grid', 'grid');
+
+    // Helper para convertir RGB a HEX
+    function rgbToHex(r, g, b) {
+      return "#" + [r, g, b].map(x => {
+        const hex = x.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      }).join('').toUpperCase();
+    }
+
+    // Actualizar y Abrir Ficha Técnica / Guía de Ilustrador
+    function updateAndOpenWorldCard() {
+      document.getElementById('card-seed').textContent = '#' + genesisConfig.seed;
+      document.getElementById('card-luminaries').textContent = `${numSuns} Sol${numSuns===1?'':'es'} (${numSuns > 1 ? 'Calor Intenso' : 'Templado'}) / ${numMoons} Luna${numMoons===1?'':'s'}`;
+      document.getElementById('card-water').textContent = `${Math.round((1 - genesisConfig.waterLevel) * 100)}% Continental / ${Math.round(genesisConfig.waterLevel * 100)}% Océano`;
+      document.getElementById('card-plates').textContent = `${genesisConfig.plates} Placas Tectónicas (${genesisConfig.plates > 9 ? 'Archipiélagos & Alta Orogénesis' : 'Grandes Masas Continentales'})`;
+      document.getElementById('card-moisture').textContent = `${Math.round(genesisConfig.globalMoisture * 100)}% (${genesisConfig.globalMoisture > 0.7 ? 'Alta Pluviosidad / Selvas Densas' : genesisConfig.globalMoisture < 0.4 ? 'Árido / Desértico' : 'Clima Equilibrado'})`;
+      
+      const erosionDesc = ['Mínima (Cumbres Escarpadas)', 'Baja', 'Media (Cuencas Fluviales)', 'Alta (Valles Amplios)', 'Extrema (Cañones Profundos)'];
+      document.getElementById('card-erosion').textContent = erosionDesc[genesisConfig.erosion - 1];
+
+      // Generar Concept Art Prompt para Ilustradores
+      const sunDesc = numSuns === 0 ? "eterna noche estrellada bajo luz lunar" : numSuns === 1 ? "un sol ámbar orbitando en el plano superior" : `${numSuns} soles binarios proyectando sombras múltiples y tonos dorados`;
+      const landscapeDesc = genesisConfig.waterLevel > 0.65 ? "un mundo oceánico con archipiélagos volcánicos y atolones de coral" : genesisConfig.waterLevel < 0.35 ? "un supercontinente árido masivo con cadenas montañosas colosales" : "continentes equilibrados con densas masas forestales, cuencas hidrográficas y costas vívidas";
+      
+      const artPrompt = `Plano aéreo cinemático de fantasía realista de un mundo plano discoidal rodeado por una muralla perimetral de hielo milenario. Clima dominado por ${sunDesc}, ${landscapeDesc}. Paleta de colores rica en contrastes: esmeraldas profundos en selvas tropicales, turquesas en arrecifes litorales, dorados en sabanas y desiertos, y cumbres nevadas escarpadas con niebla volumétrica. Iluminación realista estilo National Geographic / NASA, alta fidelidad topográfica.`;
+      document.getElementById('card-art-prompt').textContent = artPrompt;
+
+      // Inyectar Guía Cromática de Biomas
+      const container = document.getElementById('color-guide-container');
+      container.innerHTML = '';
+
+      Object.entries(BIOMES).forEach(([key, biome]) => {
+        const hex = rgbToHex(biome.color[0], biome.color[1], biome.color[2]);
+        const rgbStr = `RGB(${biome.color[0]}, ${biome.color[1]}, ${biome.color[2]})`;
+
+        const item = document.createElement('div');
+        item.className = 'color-swatch-item';
+        item.innerHTML = `
+          <div class="swatch-box" style="background-color: ${hex};"></div>
+          <div class="swatch-info">
+            <div class="name">${biome.name}</div>
+            <div class="codes">${hex} · ${rgbStr}</div>
+            <div class="desc"><i class="fa-solid fa-leaf" style="color: var(--accent-eco);"></i> ${biome.flora}</div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+
+      const modal = document.getElementById('world-card-modal');
+      modal.classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('world-card-modal').classList.remove('show');
+    }
+
+    document.getElementById('btn-open-world-card').onclick = updateAndOpenWorldCard;
+    document.getElementById('btn-close-modal').onclick = closeModal;
+    document.getElementById('btn-modal-close').onclick = closeModal;
+    document.getElementById('world-card-modal').onclick = (e) => {
+      if (e.target.id === 'world-card-modal') closeModal();
+    };
+
+    // Generador de Texto de la Ficha Técnica
+    function generateWorldCardText() {
+      let txt = `=======================================================================\n`;
+      txt += `   TERRAPLANA GENESIS - FICHA TÉCNICA Y GUÍA PARA ILUSTRADOR / ARTISTA   \n`;
+      txt += `=======================================================================\n\n`;
+      txt += `[1. PARÁMETROS DEL MUNDO]\n`;
+      txt += `- Semilla / Identificador: #${genesisConfig.seed}\n`;
+      txt += `- Régimen Solar: ${numSuns} Sol(es) / ${numMoons} Luna(s)\n`;
+      txt += `- Balance Continental: ${Math.round((1-genesisConfig.waterLevel)*100)}% Masa Terrestre / ${Math.round(genesisConfig.waterLevel*100)}% Cuenca Oceánica\n`;
+      txt += `- Tectónica: ${genesisConfig.plates} Placas Tectónicas Activas\n`;
+      txt += `- Humedad Atmosférica: ${Math.round(genesisConfig.globalMoisture*100)}%\n`;
+      txt += `- Nivel de Erosión: ${genesisConfig.erosion} / 5\n\n`;
+      txt += `[2. DIRECCIÓN DE ARTE SUGERIDA / CONCEPT ART BRIEF]\n`;
+      txt += `${document.getElementById('card-art-prompt').textContent.trim()}\n\n`;
+      txt += `[3. GUÍA CROMÁTICA OFICIAL DE BIOMAS & VEGETACIÓN]\n`;
+      Object.entries(BIOMES).forEach(([key, biome]) => {
+        const hex = rgbToHex(biome.color[0], biome.color[1], biome.color[2]);
+        const rgbStr = `RGB(${biome.color[0]}, ${biome.color[1]}, ${biome.color[2]})`;
+        txt += `* ${biome.name.padEnd(30, ' ')} | HEX: ${hex.padEnd(8, ' ')} | ${rgbStr.padEnd(20, ' ')} | Vegetación: ${biome.flora}\n`;
+      });
+      txt += `\n=======================================================================\n`;
+      txt += `Generado con TerraPlana Genesis Engine · Simulador Científico de Biomas\n`;
+      return txt;
+    }
+
+    // Descarga de Ficha en archivo .TXT
+    document.getElementById('btn-download-card-file').onclick = () => {
+      const content = generateWorldCardText();
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Ficha_Mundo_Genesis_Seed_${genesisConfig.seed}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    };
+
+    // Copiar Guía en Portapapeles para el Ilustrador (con fallback seguro)
+    document.getElementById('btn-copy-card-text').onclick = () => {
+      const copyText = generateWorldCardText();
+      const fallbackCopy = (text) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          notifyCopySuccess();
+        } catch (err) {
+          alert('No se pudo copiar automáticamente. Por favor descarga el archivo .TXT');
+        }
+        document.body.removeChild(textArea);
+      };
+
+      const notifyCopySuccess = () => {
+        const btn = document.getElementById('btn-copy-card-text');
+        const orig = btn.innerHTML;
+        btn.innerHTML = `<i class="fa-solid fa-check" style="color: var(--accent-eco);"></i> ¡Copiado al Portapapeles!`;
+        setTimeout(() => { btn.innerHTML = orig; }, 2500);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(copyText).then(notifyCopySuccess).catch(() => fallbackCopy(copyText));
+      } else {
+        fallbackCopy(copyText);
+      }
+    };
+
+    // Descarga Directa de Mapa en Alta Resolución (2048x2048 PNG)
+    document.getElementById('btn-download-map').onclick = () => {
+      if (!currentWorldCanvas) {
+        alert('El mapa aún se está generando, por favor espera un instante.');
+        return;
+      }
+
+      const cleanFileName = (currentWorldName || 'Mundo').replace(/[^a-zA-Z0-9_-]/g, '_');
+
+      if (currentWorldCanvas.toBlob) {
+        currentWorldCanvas.toBlob((blob) => {
+          if (!blob) {
+            fallbackDataUrlDownload();
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${cleanFileName}_${currentRenderMode}_2048px.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }, 'image/png');
+      } else {
+        fallbackDataUrlDownload();
+      }
+
+      function fallbackDataUrlDownload() {
+        const link = document.createElement('a');
+        link.download = `${cleanFileName}_${currentRenderMode}_2048px.png`;
+        link.href = currentWorldCanvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
+
+    // --- GESTIÓN DE MUNDOS GUARDADOS Y NOMBRES ---
+    let currentWorldName = "Terra Genesis Primus";
+    const STORAGE_KEY = "terraplana_saved_worlds_v1";
+
+    function getSavedWorlds() {
+      try {
+        const data = localStorage.getItem(STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+      } catch (e) {
+        console.error("Error reading localStorage", e);
+        return [];
+      }
+    }
+
+    function saveWorldsToStorage(list) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      } catch (e) {
+        console.error("Error writing localStorage", e);
+      }
+    }
+
+    function renderSavedWorldsList() {
+      const list = getSavedWorlds();
+      const container = document.getElementById('saved-worlds-list');
+      document.getElementById('saved-count').textContent = list.length;
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 8px;">No hay mundos guardados aún.</div>`;
+        return;
+      }
+
+      list.forEach((w, idx) => {
+        const item = document.createElement('div');
+        item.style.cssText = `
+          display: flex; justify-content: space-between; align-items: center;
+          background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 6px; padding: 6px 8px; font-size: 11.5px;
+        `;
+
+        item.innerHTML = `
+          <div style="cursor: pointer; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Cargar este mundo">
+            <b style="color: #fff;">${w.name}</b>
+            <span style="color: var(--text-muted); font-size: 10px; display: block; font-family: 'JetBrains Mono', monospace;">#${w.config.seed} · ${w.suns}S/${w.moons}L · ${Math.round(w.config.waterLevel*100)}% Agua</span>
+          </div>
+          <div style="display: flex; gap: 4px;">
+            <button class="btn-load-slot" data-idx="${idx}" style="background: rgba(56, 189, 248, 0.2); border: 1px solid var(--primary); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;" title="Cargar">
+              <i class="fa-solid fa-folder-open"></i>
+            </button>
+            <button class="btn-delete-slot" data-idx="${idx}" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #ef4444; border-radius: 4px; padding: 2px 6px; font-size: 10px; cursor: pointer;" title="Eliminar">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+
+        item.querySelector('.btn-load-slot').onclick = () => loadWorldFromSlot(idx);
+        item.querySelector('.btn-delete-slot').onclick = () => deleteWorldSlot(idx);
+        container.appendChild(item);
+      });
+    }
+
+    function saveCurrentWorld() {
+      const nameInput = document.getElementById('input-world-name');
+      const name = nameInput.value.trim() || `Mundo #${genesisConfig.seed}`;
+      currentWorldName = name;
+      document.getElementById('hud-world-name').textContent = name;
+
+      const worldData = {
+        id: 'world_' + Date.now(),
+        name: name,
+        createdAt: new Date().toISOString(),
+        config: { ...genesisConfig },
+        suns: numSuns,
+        moons: numMoons
+      };
+
+      const list = getSavedWorlds();
+      // Si ya existe uno con la misma seed, lo actualizamos; si no, lo añadimos
+      const existingIdx = list.findIndex(w => w.config.seed === genesisConfig.seed);
+      if (existingIdx >= 0) {
+        list[existingIdx] = worldData;
+      } else {
+        list.unshift(worldData);
+      }
+
+      saveWorldsToStorage(list);
+      renderSavedWorldsList();
+
+      const btn = document.getElementById('btn-save-world');
+      const orig = btn.innerHTML;
+      btn.innerHTML = `<i class="fa-solid fa-check"></i> ¡Guardado!`;
+      setTimeout(() => { btn.innerHTML = orig; }, 1800);
+    }
+
+    function loadWorldFromSlot(idx) {
+      const list = getSavedWorlds();
+      if (!list[idx]) return;
+      const w = list[idx];
+
+      currentWorldName = w.name;
+      document.getElementById('input-world-name').value = w.name;
+      document.getElementById('hud-world-name').textContent = w.name;
+
+      genesisConfig = { ...w.config };
+      numSuns = w.suns;
+      numMoons = w.moons;
+
+      // Actualizar Sliders de UI
+      document.getElementById('gen-plates').value = genesisConfig.plates;
+      document.getElementById('lbl-gen-plates').textContent = `${genesisConfig.plates} Placas`;
+
+      document.getElementById('gen-water').value = genesisConfig.waterLevel;
+      document.getElementById('lbl-gen-water').textContent = Math.round(genesisConfig.waterLevel * 100) + '%';
+
+      document.getElementById('gen-moisture').value = genesisConfig.globalMoisture;
+      document.getElementById('lbl-gen-moisture').textContent = Math.round(genesisConfig.globalMoisture * 100) + '%';
+
+      document.getElementById('gen-erosion').value = genesisConfig.erosion;
+      const desc = ['Baja', 'Moderada', 'Media', 'Alta', 'Fluvial Extrema'];
+      document.getElementById('lbl-gen-erosion').textContent = desc[genesisConfig.erosion - 1];
+
+      runSimulationAndApply();
+    }
+
+    function deleteWorldSlot(idx) {
+      const list = getSavedWorlds();
+      if (confirm(`¿Eliminar el mundo "${list[idx].name}"?`)) {
+        list.splice(idx, 1);
+        saveWorldsToStorage(list);
+        renderSavedWorldsList();
+      }
+    }
+
+    document.getElementById('btn-save-world').onclick = saveCurrentWorld;
+    document.getElementById('input-world-name').oninput = (e) => {
+      currentWorldName = e.target.value || "Terra Genesis Primus";
+      document.getElementById('hud-world-name').textContent = currentWorldName;
+    };
+
+    // Exportar Colección de Mundos en JSON
+    document.getElementById('btn-export-worlds-json').onclick = () => {
+      const list = getSavedWorlds();
+      const blob = new Blob([JSON.stringify(list, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Mis_Mundos_TerraPlana_Backup.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initScene();
+      renderSavedWorldsList();
+    });
+  </script>
+</body>
+</html>
